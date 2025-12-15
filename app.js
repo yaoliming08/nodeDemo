@@ -17,6 +17,8 @@ const dbConfig = {
 const pool = mysql.createPool(dbConfig);
 
 app.use(express.json());
+// 允许访问静态文件（HTML页面）
+app.use(express.static('public'));
 
 // 生成随机用户数据的工具函数
 function createRandomUser(index) {
@@ -58,6 +60,29 @@ app.get('/users', async (req, res) => {
     const sql = 'SELECT * FROM `user`';
     const [rows] = await pool.query(sql);
     res.json(rows);
+  } catch (err) {
+    console.error('DB error:', err);
+    res.status(500).json({ error: 'Database error', detail: err.message });
+  }
+});
+
+// 根据用户名查询用户数据
+app.get('/users/search', async (req, res) => {
+  const { username } = req.query;
+  
+  if (!username) {
+    return res.status(400).json({ error: '请提供用户名参数 username' });
+  }
+
+  try {
+    const sql = 'SELECT * FROM `user` WHERE `username` = ?';
+    const [rows] = await pool.query(sql, [username]);
+    
+    if (rows.length === 0) {
+      return res.json({ message: '未找到该用户', data: null });
+    }
+    
+    res.json({ message: '查询成功', data: rows[0] });
   } catch (err) {
     console.error('DB error:', err);
     res.status(500).json({ error: 'Database error', detail: err.message });
