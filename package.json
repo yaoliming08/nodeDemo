@@ -1,0 +1,15 @@
+{
+  "name": "mysql95-backend",
+  "version": "1.0.0",
+  "description": "Simple Node.js backend connecting to local mysql95 database",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "mysql2": "^3.11.0"
+  }
+}
+
+
