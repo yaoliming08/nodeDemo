@@ -18,15 +18,44 @@ const pool = mysql.createPool(dbConfig);
 
 app.use(express.json());
 
+// 生成随机用户数据的工具函数
+function createRandomUser(index) {
+  const names = ['张三', '李四', '王五', '赵六', '孙七', '周八', '吴九', '郑十'];
+  const genders = ['男', '女'];
+
+  const name = names[Math.floor(Math.random() * names.length)] + index;
+  const gender = genders[Math.floor(Math.random() * genders.length)];
+  const age = Math.floor(Math.random() * 40) + 18; // 18-57 岁
+
+  // 简单生成手机号和身份证号（只是模拟数据，不是真实规则）
+  const phone = '13' + Math.floor(100000000 + Math.random() * 900000000).toString();
+  const idCard = '4201' + // 地区码随便写的
+    '1990' +              // 年份
+    ('0' + Math.floor(Math.random() * 9 + 1)).slice(-2) + // 月
+    ('0' + Math.floor(Math.random() * 28 + 1)).slice(-2) + // 日
+    Math.floor(1000 + Math.random() * 9000).toString();   // 顺序码
+
+  const password = 'pass' + Math.floor(Math.random() * 100000);
+
+  return {
+    username: name,
+    password,
+    gender,
+    age,
+    phone,
+    id_card: idCard
+  };
+}
+
 // 简单测试接口
 app.get('/', (req, res) => {
   res.send('MySQL95 backend is running');
 });
 
-// 查询 xl.test01.user 表中所有数据
+// 查询 xl.user 表中所有数据
 app.get('/users', async (req, res) => {
   try {
-    const sql = 'SELECT * FROM `test01`.`user`';
+    const sql = 'SELECT * FROM `user`';
     const [rows] = await pool.query(sql);
     res.json(rows);
   } catch (err) {
@@ -35,16 +64,37 @@ app.get('/users', async (req, res) => {
   }
 });
 
-// 往 xl.test01.user 表里插入一条数据（假设 user 字段是 bigint）
+// 往 xl.user 表里插入一条完整的用户数据
 app.post('/users', async (req, res) => {
-  const { user } = req.body;
-  if (user === undefined) {
-    return res.status(400).json({ error: 'Missing field: user' });
+  const { username, password, gender, age, phone, id_card } = req.body;
+
+  if (!username || !password || !gender || !age || !phone || !id_card) {
+    return res.status(400).json({ error: '缺少字段，请提供 username, password, gender, age, phone, id_card' });
   }
+
   try {
-    const sql = 'INSERT INTO `test01`.`user` (`user`) VALUES (?)';
-    const [result] = await pool.execute(sql, [user]);
-    res.json({ id: result.insertId, user });
+    const sql = 'INSERT INTO `user` (`username`, `password`, `gender`, `age`, `phone`, `id_card`) VALUES (?, ?, ?, ?, ?, ?)';
+    const [result] = await pool.execute(sql, [username, password, gender, age, phone, id_card]);
+    res.json({ id: result.insertId, username, gender, age, phone, id_card });
+  } catch (err) {
+    console.error('DB error:', err);
+    res.status(500).json({ error: 'Database error', detail: err.message });
+  }
+});
+
+// 一次性往表里插入 100 条模拟数据
+app.get('/seed-users', async (req, res) => {
+  const users = [];
+  for (let i = 1; i <= 100; i++) {
+    users.push(createRandomUser(i));
+  }
+
+  const sql = 'INSERT INTO `user` (`username`, `password`, `gender`, `age`, `phone`, `id_card`) VALUES ?';
+  const values = users.map(u => [u.username, u.password, u.gender, u.age, u.phone, u.id_card]);
+
+  try {
+    const [result] = await pool.query(sql, [values]);
+    res.json({ inserted: result.affectedRows });
   } catch (err) {
     console.error('DB error:', err);
     res.status(500).json({ error: 'Database error', detail: err.message });
