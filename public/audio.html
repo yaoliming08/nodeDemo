@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64音频播放器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 32px;
+        }
+
+        .audio-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+        }
+
+        .audio-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .audio-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .audio-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .audio-title::before {
+            content: '🎵';
+            font-size: 24px;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-bottom: 15px;
+            border-radius: 10px;
+        }
+
+        .audio-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .status {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.loaded {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎧 Base64音频播放器</h1>
+        
+        <div class="audio-list" id="audioList">
+            <!-- 音频卡片将通过JavaScript动态生成 -->
+        </div>
+    </div>
+
+    <script>
+        const audioFiles = [
+            { filename: 'video1.json', name: '音频片段 1' },
+            { filename: 'video2.json', name: '音频片段 2' },
+            { filename: 'video3.json', name: '音频片段 3' }
+        ];
+
+        async function loadAudio(audioFile) {
+            const cardId = `audio-${audioFile.filename}`;
+            const cardEl = document.getElementById(cardId);
+            if (!cardEl) {
+                console.error(`找不到卡片元素: ${cardId}`);
+                return;
+            }
+
+            const statusEl = cardEl.querySelector('.status');
+            const audioEl = cardEl.querySelector('audio');
+            const errorEl = cardEl.querySelector('.error-message');
+
+            if (!statusEl || !audioEl || !errorEl) {
+                console.error(`找不到必要的DOM元素: ${cardId}`);
+                return;
+            }
+
+            statusEl.textContent = '加载中...';
+            statusEl.className = 'status loading';
+            statusEl.innerHTML = '<span class="loading-spinner"></span>加载中...';
+            errorEl.textContent = '';
+
+            try {
+                const response = await fetch(`/api/audio/${audioFile.filename}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || '加载失败');
+                }
+
+                // 检查返回的数据结构
+                if (!data.audioBase64) {
+                    throw new Error('服务器返回的数据中没有 audioBase64 字段');
+                }
+
+                // 提取base64数据（确保是字符串类型）
+                let audioBase64 = String(data.audioBase64).trim();
+                
+                // 如果数据前面有 "audioBase64" 字符串，移除它
+                if (audioBase64.startsWith('audioBase64')) {
+                    console.warn('检测到数据前缀，正在清理...');
+                    audioBase64 = audioBase64.replace(/^audioBase64\s*/, '');
+                }
+                
+                // 清理Base64数据：移除所有空白字符（空格、换行等）
+                let base64Data = '';
+                let mimeType = 'audio/wav'; // 默认使用WAV格式
+                
+                if (audioBase64.startsWith('data:')) {
+                    // 如果已经有data URI前缀
+                    const parts = audioBase64.split(',');
+                    mimeType = parts[0].replace('data:', '');
+                    base64Data = parts.slice(1).join(',').replace(/\s+/g, '');
+                } else {
+                    // 如果没有data URI前缀，检测格式
+                    base64Data = audioBase64.replace(/\s+/g, '');
+                    
+                    // 检测音频格式：WAV文件通常以"UklGR"开头（RIFF的Base64编码）
+                    if (base64Data.startsWith('UklGR')) {
+                        mimeType = 'audio/wav';
+                    } else if (base64Data.startsWith('/9j/') || base64Data.startsWith('iVBOR')) {
+                        // 这些是图片格式，不应该出现
+                        throw new Error('检测到非音频格式数据');
+                    } else {
+                        // 默认尝试WAV，如果不行可以尝试其他格式
+                        mimeType = 'audio/wav';
+                    }
+                }
+                
+                // 验证Base64数据长度
+                if (base64Data.length === 0) {
+                    throw new Error('Base64数据为空');
+                }
+                
+                // 验证Base64格式（只包含Base64字符）
+                const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+                if (!base64Regex.test(base64Data)) {
+                    console.warn('Base64数据可能包含无效字符，尝试清理...');
+                    base64Data = base64Data.replace(/[^A-Za-z0-9+/=]/g, '');
+                }
+                
+                console.log(`处理后的音频数据长度: ${base64Data.length} 字符`);
+                console.log(`使用的MIME类型: ${mimeType}`);
+                console.log(`Base64前50字符: ${base64Data.substring(0, 50)}`);
+
+                // 添加音频元素的事件监听
+                audioEl.onerror = (e) => {
+                    console.error('音频加载错误:', e);
+                    console.error('音频元素错误详情:', audioEl.error);
+                    console.error('错误代码:', audioEl.error?.code);
+                    console.error('错误消息:', audioEl.error?.message);
+                    statusEl.textContent = '播放失败';
+                    statusEl.className = 'status error';
+                    errorEl.textContent = `音频格式错误或数据损坏 (错误代码: ${audioEl.error?.code || '未知'})`;
+                };
+
+                audioEl.onloadeddata = () => {
+                    console.log(`音频 ${audioFile.filename} 加载成功`);
+                    statusEl.textContent = '已加载';
+                    statusEl.className = 'status loaded';
+                };
+
+                audioEl.oncanplay = () => {
+                    console.log(`音频 ${audioFile.filename} 可以播放`);
+                };
+
+                // 尝试使用 Blob URL 而不是 data URI（某些浏览器对 data URI 有限制）
+                try {
+                    // 将 Base64 转换为二进制
+                    const binaryString = atob(base64Data);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    
+                    // 创建 Blob
+                    const blob = new Blob([bytes], { type: mimeType });
+                    const blobUrl = URL.createObjectURL(blob);
+                    
+                    console.log(`使用 Blob URL 加载音频`);
+                    
+                    // 设置音频源为 Blob URL
+                    audioEl.src = blobUrl;
+                    
+                    // 清理：当音频元素被移除时释放 Blob URL
+                    audioEl.addEventListener('loadstart', () => {
+                        // 如果之前有 Blob URL，先释放
+                        if (audioEl.dataset.blobUrl) {
+                            URL.revokeObjectURL(audioEl.dataset.blobUrl);
+                        }
+                        audioEl.dataset.blobUrl = blobUrl;
+                    });
+                } catch (blobError) {
+                    console.warn('Blob URL 创建失败，回退到 data URI:', blobError);
+                    // 回退到 data URI
+                    const dataUri = `data:${mimeType};base64,${base64Data}`;
+                    audioEl.src = dataUri;
+                }
+                
+                // 等待音频元数据加载
+                audioEl.load();
+                
+                // 计算文件大小（近似值）
+                const base64Length = data.audioBase64.length;
+                const fileSizeKB = Math.round((base64Length * 3) / 4 / 1024);
+                const fileSizeEl = cardEl.querySelector('.file-size');
+                if (fileSizeEl) {
+                    fileSizeEl.textContent = `约 ${fileSizeKB} KB`;
+                }
+
+            } catch (error) {
+                console.error('加载音频失败:', error);
+                statusEl.textContent = '加载失败';
+                statusEl.className = 'status error';
+                errorEl.textContent = `错误: ${error.message}`;
+            }
+        }
+
+        function createAudioCard(audioFile) {
+            const card = document.createElement('div');
+            card.className = 'audio-card';
+            card.id = `audio-${audioFile.filename}`;
+            
+            card.innerHTML = `
+                <div class="audio-title">${audioFile.name}</div>
+                <audio class="audio-player" controls preload="none">
+                    您的浏览器不支持音频播放。
+                </audio>
+                <div class="audio-info">
+                    <div>
+                        <span class="status loading">准备加载</span>
+                        <span class="file-size"></span>
+                    </div>
+                </div>
+                <div class="error-message"></div>
+            `;
+            
+            // 获取音频元素并添加全局错误处理
+            const audioEl = card.querySelector('audio');
+            if (audioEl) {
+                // 添加播放相关的调试信息
+                audioEl.addEventListener('play', () => {
+                    console.log(`开始播放: ${audioFile.filename}`);
+                });
+                
+                audioEl.addEventListener('pause', () => {
+                    console.log(`暂停播放: ${audioFile.filename}`);
+                });
+                
+                audioEl.addEventListener('ended', () => {
+                    console.log(`播放结束: ${audioFile.filename}`);
+                });
+            }
+            
+            return card;
+        }
+
+        // 初始化页面
+        function init() {
+            const audioList = document.getElementById('audioList');
+            
+            if (!audioList) {
+                console.error('找不到audioList元素');
+                return;
+            }
+            
+            audioFiles.forEach((audioFile, index) => {
+                const card = createAudioCard(audioFile);
+                audioList.appendChild(card);
+                
+                // 延迟加载，避免同时加载多个大文件
+                // 使用 requestAnimationFrame 确保DOM已完全渲染
+                setTimeout(() => {
+                    requestAnimationFrame(() => {
+                        loadAudio(audioFile);
+                    });
+                }, index * 500);
+            });
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
+
