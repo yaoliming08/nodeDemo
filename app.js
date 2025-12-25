@@ -2,6 +2,8 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const fs = require('fs').promises;
 const path = require('path');
+const axios = require('axios');
+const cheerio = require('cheerio');
 
 const app = express();
 const port = 3000;
@@ -202,6 +204,170 @@ app.post('/api/personality-test', async (req, res) => {
   } catch (err) {
     console.error('保存测试结果错误:', err);
     res.status(500).json({ error: '保存失败', detail: err.message });
+  }
+});
+
+// 接口爬虫API端点
+app.post('/api/crawl', async (req, res) => {
+  const { url } = req.body;
+  
+  if (!url) {
+    return res.status(400).json({ error: '请提供网址参数 url' });
+  }
+
+  // 验证URL格式
+  try {
+    new URL(url);
+  } catch (e) {
+    return res.status(400).json({ error: '无效的网址格式' });
+  }
+
+  try {
+    console.log(`开始爬取: ${url}`);
+    
+    // 获取页面HTML
+    const response = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      },
+      timeout: 10000,
+      maxRedirects: 5
+    });
+
+    const html = response.data;
+    const $ = cheerio.load(html);
+    
+    const apis = [];
+    const baseUrl = new URL(url).origin;
+
+    // 1. 分析script标签中的JavaScript代码
+    $('script').each((i, elem) => {
+      const scriptContent = $(elem).html() || $(elem).text() || '';
+      if (!scriptContent) return;
+
+      // 查找fetch调用
+      const fetchRegex = /fetch\s*\(\s*['"`]([^'"`]+)['"`]/gi;
+      let match;
+      while ((match = fetchRegex.exec(scriptContent)) !== null) {
+        const apiUrl = match[1];
+        const fullUrl = apiUrl.startsWith('http') ? apiUrl : new URL(apiUrl, baseUrl).href;
+        apis.push({
+          method: 'GET', // fetch默认是GET，但可能后面有配置
+          url: fullUrl,
+          source: 'fetch调用'
+        });
+      }
+
+      // 查找fetch with options
+      const fetchOptionsRegex = /fetch\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*\{[^}]*method\s*:\s*['"`]([^'"`]+)['"`]/gi;
+      while ((match = fetchOptionsRegex.exec(scriptContent)) !== null) {
+        const apiUrl = match[1];
+        const method = match[2].toUpperCase();
+        const fullUrl = apiUrl.startsWith('http') ? apiUrl : new URL(apiUrl, baseUrl).href;
+        apis.push({
+          method: method,
+          url: fullUrl,
+          source: 'fetch调用（带配置）'
+        });
+      }
+
+      // 查找axios调用
+      const axiosRegex = /axios\.(get|post|put|delete|patch)\s*\(\s*['"`]([^'"`]+)['"`]/gi;
+      while ((match = axiosRegex.exec(scriptContent)) !== null) {
+        const method = match[1].toUpperCase();
+        const apiUrl = match[2];
+        const fullUrl = apiUrl.startsWith('http') ? apiUrl : new URL(apiUrl, baseUrl).href;
+        apis.push({
+          method: method,
+          url: fullUrl,
+          source: 'axios调用'
+        });
+      }
+
+      // 查找XMLHttpRequest
+      const xhrRegex = /\.open\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*['"`]([^'"`]+)['"`]/gi;
+      while ((match = xhrRegex.exec(scriptContent)) !== null) {
+        const method = match[1].toUpperCase();
+        const apiUrl = match[2];
+        const fullUrl = apiUrl.startsWith('http') ? apiUrl : new URL(apiUrl, baseUrl).href;
+        apis.push({
+          method: method,
+          url: fullUrl,
+          source: 'XMLHttpRequest'
+        });
+      }
+
+      // 查找$.ajax (jQuery)
+      const jqueryAjaxRegex = /\$\.ajax\s*\(\s*\{[^}]*url\s*:\s*['"`]([^'"`]+)['"`]/gi;
+      while ((match = jqueryAjaxRegex.exec(scriptContent)) !== null) {
+        const apiUrl = match[1];
+        const fullUrl = apiUrl.startsWith('http') ? apiUrl : new URL(apiUrl, baseUrl).href;
+        apis.push({
+          method: 'GET', // jQuery ajax默认
+          url: fullUrl,
+          source: 'jQuery ajax'
+        });
+      }
+    });
+
+    // 2. 查找页面中的API链接（href和src中的API路径）
+    $('a[href*="/api/"], a[href*="api."]').each((i, elem) => {
+      const href = $(elem).attr('href');
+      if (href) {
+        const fullUrl = href.startsWith('http') ? href : new URL(href, baseUrl).href;
+        apis.push({
+          method: 'GET',
+          url: fullUrl,
+          source: '页面链接'
+        });
+      }
+    });
+
+    // 3. 查找form的action
+    $('form[action]').each((i, elem) => {
+      const action = $(elem).attr('action');
+      const method = ($(elem).attr('method') || 'GET').toUpperCase();
+      if (action) {
+        const fullUrl = action.startsWith('http') ? action : new URL(action, baseUrl).href;
+        apis.push({
+          method: method,
+          url: fullUrl,
+          source: '表单提交'
+        });
+      }
+    });
+
+    // 去重（基于URL和method）
+    const uniqueApis = [];
+    const seen = new Set();
+    apis.forEach(api => {
+      const key = `${api.method}:${api.url}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueApis.push(api);
+      }
+    });
+
+    console.log(`发现 ${uniqueApis.length} 个API接口`);
+
+    res.json({
+      success: true,
+      url: url,
+      apis: uniqueApis,
+      count: uniqueApis.length
+    });
+
+  } catch (err) {
+    console.error('爬取错误:', err);
+    if (err.code === 'ENOTFOUND') {
+      return res.status(400).json({ error: '无法访问该网址，请检查网址是否正确' });
+    } else if (err.code === 'ECONNREFUSED') {
+      return res.status(400).json({ error: '连接被拒绝，该网址可能无法访问' });
+    } else if (err.code === 'ETIMEDOUT') {
+      return res.status(400).json({ error: '请求超时，请稍后重试' });
+    } else {
+      return res.status(500).json({ error: '爬取失败', detail: err.message });
+    }
   }
 });
 
