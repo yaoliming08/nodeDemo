@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用户查询系统</title>
+    <title>功能导航 - 项目主页</title>
     <style>
         * {
             margin: 0;
@@ -15,265 +15,142 @@
             font-family: 'Microsoft YaHei', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            padding: 40px 20px;
         }
 
         .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 20px;
+            opacity: 0.9;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 600px;
+            padding: 35px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .feature-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .feature-description {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .feature-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 15px;
+            text-align: center;
             width: 100%;
         }
 
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 28px;
-        }
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 36px;
+            }
 
-        .search-box {
-            margin-bottom: 30px;
-        }
+            .header p {
+                font-size: 16px;
+            }
 
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        button {
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: bold;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        .result {
-            margin-top: 20px;
-            padding: 20px;
-            border-radius: 10px;
-            display: none;
-        }
-
-        .result.show {
-            display: block;
-        }
-
-        .result.success {
-            background: #f0f9ff;
-            border: 2px solid #3b82f6;
-        }
-
-        .result.error {
-            background: #fef2f2;
-            border: 2px solid #ef4444;
-        }
-
-        .result.not-found {
-            background: #fffbeb;
-            border: 2px solid #f59e0b;
-        }
-
-        .result h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .user-info {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-
-        .info-row {
-            display: flex;
-            padding: 10px 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .info-row:last-child {
-            border-bottom: none;
-        }
-
-        .info-label {
-            font-weight: bold;
-            color: #666;
-            width: 100px;
-            flex-shrink: 0;
-        }
-
-        .info-value {
-            color: #333;
-            flex: 1;
-        }
-
-        .loading {
-            text-align: center;
-            color: #667eea;
-            display: none;
-        }
-
-        .loading.show {
-            display: block;
-        }
-
-        .message {
-            color: #666;
-            font-size: 14px;
-            margin-top: 10px;
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔍 用户查询系统</h1>
-        
-        <div class="search-box">
-            <div class="input-group">
-                <input 
-                    type="text" 
-                    id="usernameInput" 
-                    placeholder="请输入用户名（支持模糊搜索）..."
-                    autocomplete="off"
-                >
-                <button onclick="searchUser()">查询</button>
-            </div>
-            <div class="loading" id="loading">查询中...</div>
+        <div class="header">
+            <h1>🚀 项目功能导航</h1>
+            <p>选择下方功能卡片，开始使用各项服务</p>
         </div>
 
-        <div class="result" id="result">
-            <h3 id="resultTitle"></h3>
-            <div id="resultContent"></div>
+        <div class="features-grid">
+            <a href="user-search.html" class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <div class="feature-title">用户查询系统</div>
+                <div class="feature-description">
+                    通过用户名快速查询用户信息，支持模糊搜索功能。
+                    可以查看用户的详细信息，包括用户名、密码、性别、年龄、手机号和身份证等。
+                </div>
+                <div class="feature-badge">数据库查询</div>
+            </a>
+
+            <a href="audio.html" class="feature-card">
+                <div class="feature-icon">🎧</div>
+                <div class="feature-title">Base64音频播放器</div>
+                <div class="feature-description">
+                    在线播放Base64编码的音频文件。
+                    支持多种音频格式，自动加载和播放音频内容，提供友好的用户界面。
+                </div>
+                <div class="feature-badge">媒体播放</div>
+            </a>
+
+            <a href="personality-test.html" class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <div class="feature-title">人格测试</div>
+                <div class="feature-description">
+                    通过回答12道精心设计的问题，了解你的人格特征。
+                    基于MBTI理论，分析你的性格类型，并提供详细的性格描述和评分。
+                </div>
+                <div class="feature-badge">心理测试</div>
+            </a>
         </div>
     </div>
-
-    <script>
-        // 回车键触发查询
-        document.getElementById('usernameInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchUser();
-            }
-        });
-
-        async function searchUser() {
-            const username = document.getElementById('usernameInput').value.trim();
-            const resultDiv = document.getElementById('result');
-            const resultTitle = document.getElementById('resultTitle');
-            const resultContent = document.getElementById('resultContent');
-            const loading = document.getElementById('loading');
-
-            // 清空之前的结果
-            resultDiv.classList.remove('show', 'success', 'error', 'not-found');
-            resultContent.innerHTML = '';
-
-            if (!username) {
-                resultDiv.classList.add('show', 'error');
-                resultTitle.textContent = '❌ 错误';
-                resultContent.innerHTML = '<div class="message">请输入用户名</div>';
-                return;
-            }
-
-            // 显示加载状态
-            loading.classList.add('show');
-
-            try {
-                const response = await fetch(`http://localhost:3000/users/search?username=${encodeURIComponent(username)}`);
-                const data = await response.json();
-
-                loading.classList.remove('show');
-                resultDiv.classList.add('show');
-
-                if (data.data && data.data.length > 0) {
-                    // 找到用户（可能有多条）
-                    resultDiv.classList.add('success');
-                    const count = data.count || data.data.length;
-                    resultTitle.textContent = `✅ 查询成功（找到 ${count} 条匹配结果）`;
-                    
-                    // 显示所有匹配的用户
-                    let usersHtml = '';
-                    data.data.forEach((user, index) => {
-                        usersHtml += `
-                            <div class="user-info" style="${index > 0 ? 'margin-top: 20px;' : ''}">
-                                <div class="info-row">
-                                    <span class="info-label">用户名：</span>
-                                    <span class="info-value">${user.username || 'N/A'}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">密码：</span>
-                                    <span class="info-value">${user.password || 'N/A'}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">性别：</span>
-                                    <span class="info-value">${user.gender || 'N/A'}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">年龄：</span>
-                                    <span class="info-value">${user.age || 'N/A'}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">手机号：</span>
-                                    <span class="info-value">${user.phone || 'N/A'}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">身份证：</span>
-                                    <span class="info-value">${user.id_card || 'N/A'}</span>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    resultContent.innerHTML = usersHtml;
-                } else {
-                    // 未找到用户
-                    resultDiv.classList.add('not-found');
-                    resultTitle.textContent = '⚠️ 未找到用户';
-                    resultContent.innerHTML = `<div class="message">未找到包含 "${username}" 的用户名</div>`;
-                }
-            } catch (error) {
-                loading.classList.remove('show');
-                resultDiv.classList.add('show', 'error');
-                resultTitle.textContent = '❌ 查询失败';
-                resultContent.innerHTML = `<div class="message">网络错误：${error.message}</div>`;
-            }
-        }
-    </script>
 </body>
 </html>
-
-
-

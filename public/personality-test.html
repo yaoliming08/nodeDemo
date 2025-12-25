@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人格测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .question-container {
+            display: none;
+        }
+
+        .question-container.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .question {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .option-label {
+            flex: 1;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-prev {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-prev:hover:not(:disabled) {
+            background: #d0d0d0;
+            transform: translateY(-2px);
+        }
+
+        .btn-next, .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-next:hover:not(:disabled), .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            display: none;
+            text-align: center;
+        }
+
+        .result-container.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .result-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .result-type {
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .result-description {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: left;
+            line-height: 1.8;
+            color: #555;
+            font-size: 16px;
+        }
+
+        .result-scores {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .score-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .score-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .score-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-top: 20px;
+            padding: 12px 40px;
+        }
+
+        .btn-restart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 人格测试</h1>
+        <p class="subtitle">通过回答以下问题，了解你的人格特征</p>
+
+        <!-- 进度条 -->
+        <div class="progress-text">
+            <span id="progressText">0 / 0</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <!-- 问题容器 -->
+        <div id="questionsContainer"></div>
+
+        <!-- 结果容器 -->
+        <div class="result-container" id="resultContainer">
+            <div class="result-icon" id="resultIcon">🎯</div>
+            <div class="result-title">测试完成！</div>
+            <div class="result-type" id="resultType"></div>
+            <div class="result-description" id="resultDescription"></div>
+            <div class="result-scores" id="resultScores"></div>
+            <button class="btn-restart" onclick="restartTest()">重新测试</button>
+        </div>
+    </div>
+
+    <script>
+        // 测试题目数据
+        const questions = [
+            { text: "在社交场合中，你更倾向于：", options: [
+                { label: "主动与他人交流", score: { E: 2, I: 0 } },
+                { label: "等待他人主动接近", score: { E: 0, I: 2 } },
+                { label: "视情况而定", score: { E: 1, I: 1 } }
+            ]},
+            { text: "做决定时，你更依赖：", options: [
+                { label: "逻辑分析和客观事实", score: { T: 2, F: 0 } },
+                { label: "个人价值观和他人感受", score: { T: 0, F: 2 } },
+                { label: "两者结合", score: { T: 1, F: 1 } }
+            ]},
+            { text: "你更喜欢的工作方式是：", options: [
+                { label: "有明确计划和截止日期", score: { J: 2, P: 0 } },
+                { label: "灵活应变，保持开放", score: { J: 0, P: 2 } },
+                { label: "根据任务类型决定", score: { J: 1, P: 1 } }
+            ]},
+            { text: "面对新信息时，你更关注：", options: [
+                { label: "具体细节和实际情况", score: { S: 2, N: 0 } },
+                { label: "可能性和未来趋势", score: { S: 0, N: 2 } },
+                { label: "两者都重要", score: { S: 1, N: 1 } }
+            ]},
+            { text: "周末你更愿意：", options: [
+                { label: "参加聚会或活动", score: { E: 2, I: 0 } },
+                { label: "在家休息或独处", score: { E: 0, I: 2 } },
+                { label: "偶尔外出，偶尔在家", score: { E: 1, I: 1 } }
+            ]},
+            { text: "处理冲突时，你更注重：", options: [
+                { label: "公平和原则", score: { T: 2, F: 0 } },
+                { label: "和谐和关系", score: { T: 0, F: 2 } },
+                { label: "具体情况具体分析", score: { T: 1, F: 1 } }
+            ]},
+            { text: "你更倾向于：", options: [
+                { label: "提前完成工作", score: { J: 2, P: 0 } },
+                { label: "在截止日期前完成", score: { J: 0, P: 2 } },
+                { label: "根据工作量决定", score: { J: 1, P: 1 } }
+            ]},
+            { text: "学习新知识时，你更喜欢：", options: [
+                { label: "通过实践和具体例子", score: { S: 2, N: 0 } },
+                { label: "理解概念和理论框架", score: { S: 0, N: 2 } },
+                { label: "两者结合", score: { S: 1, N: 1 } }
+            ]},
+            { text: "在团队中，你更愿意：", options: [
+                { label: "表达自己的想法", score: { E: 2, I: 0 } },
+                { label: "先倾听他人意见", score: { E: 0, I: 2 } },
+                { label: "平衡表达和倾听", score: { E: 1, I: 1 } }
+            ]},
+            { text: "评价他人时，你更看重：", options: [
+                { label: "能力和效率", score: { T: 2, F: 0 } },
+                { label: "人品和态度", score: { T: 0, F: 2 } },
+                { label: "综合考虑", score: { T: 1, F: 1 } }
+            ]},
+            { text: "你更喜欢的生活节奏：", options: [
+                { label: "规律和可预测", score: { J: 2, P: 0 } },
+                { label: "变化和惊喜", score: { J: 0, P: 2 } },
+                { label: "适度变化", score: { J: 1, P: 1 } }
+            ]},
+            { text: "解决问题时，你更倾向于：", options: [
+                { label: "使用已知有效的方法", score: { S: 2, N: 0 } },
+                { label: "尝试创新的解决方案", score: { S: 0, N: 2 } },
+                { label: "根据问题选择方法", score: { S: 1, N: 1 } }
+            ]}
+        ];
+
+        // 人格类型描述
+        const personalityTypes = {
+            'INTJ': {
+                icon: '🎯',
+                name: '建筑师',
+                description: '你是一个理性、独立的思考者，喜欢通过逻辑分析来解决问题。你善于制定长期计划，追求效率和完美。你更倾向于独立思考，不太在意他人的看法，专注于实现自己的目标。'
+            },
+            'INTP': {
+                icon: '🔬',
+                name: '逻辑学家',
+                description: '你是一个充满好奇心的理论家，喜欢探索复杂的概念和理论。你善于分析问题，发现事物之间的内在联系。你更倾向于独立思考，享受解决智力挑战的过程。'
+            },
+            'ENTJ': {
+                icon: '👔',
+                name: '指挥官',
+                description: '你是一个天生的领导者，善于制定战略和指挥他人。你自信、果断，能够快速做出决策。你追求效率和成功，喜欢挑战和竞争。你善于组织和规划，能够带领团队实现目标。'
+            },
+            'ENTP': {
+                icon: '💡',
+                name: '辩论家',
+                description: '你是一个聪明、机智的创新者，喜欢挑战传统观念。你善于辩论和说服他人，享受智力上的较量。你充满好奇心，喜欢探索新的可能性。你更倾向于灵活应变，不喜欢被规则束缚。'
+            },
+            'INFJ': {
+                icon: '🌙',
+                name: '提倡者',
+                description: '你是一个理想主义者，关心他人的福祉和社会的进步。你善于理解他人的情感和需求，有强烈的同理心。你追求意义和价值，希望能够帮助他人。你更倾向于深度思考，喜欢探索人生的意义。'
+            },
+            'INFP': {
+                icon: '🦋',
+                name: '调停者',
+                description: '你是一个充满想象力的理想主义者，重视个人价值观和真实性。你善良、敏感，关心他人的感受。你追求和谐和美好，希望能够创造一个更好的世界。你更倾向于跟随内心的声音，做真实的自己。'
+            },
+            'ENFJ': {
+                icon: '🎭',
+                name: '主人公',
+                description: '你是一个充满魅力的领导者，善于激励和影响他人。你关心他人的成长和发展，喜欢帮助他人实现潜力。你善于沟通和协调，能够建立良好的人际关系。你追求和谐和合作，希望创造一个更好的环境。'
+            },
+            'ENFP': {
+                icon: '🌈',
+                name: '竞选者',
+                description: '你是一个充满热情和创造力的自由灵魂，喜欢探索新的可能性和体验。你乐观、友好，善于与他人建立联系。你充满好奇心，喜欢尝试新事物。你更倾向于灵活应变，享受生活的多样性。'
+            },
+            'ISTJ': {
+                icon: '📋',
+                name: '物流师',
+                description: '你是一个可靠、负责任的实用主义者，注重细节和秩序。你善于制定计划并严格执行，追求效率和准确性。你更倾向于遵循传统和规则，喜欢稳定和可预测的环境。你是一个值得信赖的合作伙伴。'
+            },
+            'ISFJ': {
+                icon: '🛡️',
+                name: '守护者',
+                description: '你是一个温暖、细心的保护者，关心他人的需求和感受。你善于照顾他人，有强烈的责任感。你注重细节和秩序，喜欢稳定和可预测的环境。你更倾向于遵循传统和规则，是一个值得信赖的朋友。'
+            },
+            'ESTJ': {
+                icon: '👑',
+                name: '总经理',
+                description: '你是一个果断、务实的组织者，善于管理和执行。你注重效率和结果，能够快速做出决策。你更倾向于遵循传统和规则，喜欢有序和可预测的环境。你是一个天生的管理者，能够带领团队实现目标。'
+            },
+            'ESFJ': {
+                icon: '🤝',
+                name: '执政官',
+                description: '你是一个热情、负责的协调者，善于建立和维护人际关系。你关心他人的需求和感受，喜欢帮助他人。你注重传统和规则，喜欢稳定和可预测的环境。你是一个优秀的团队合作者，能够创造和谐的氛围。'
+            },
+            'ISTP': {
+                icon: '🔧',
+                name: '鉴赏家',
+                description: '你是一个灵活、实用的手艺人，善于解决实际问题。你更倾向于独立思考，喜欢通过实践来学习。你冷静、理性，能够在压力下保持镇定。你享受自由和灵活性，不喜欢被规则束缚。'
+            },
+            'ISFP': {
+                icon: '🎨',
+                name: '探险家',
+                description: '你是一个灵活、艺术性的探索者，善于发现生活中的美好。你更倾向于跟随内心的感受，做真实的自己。你善良、敏感，关心他人的感受。你享受自由和灵活性，喜欢探索新的体验和可能性。'
+            },
+            'ESTP': {
+                icon: '⚡',
+                name: '企业家',
+                description: '你是一个充满活力的行动者，善于抓住机会并快速行动。你更倾向于活在当下，享受即时的满足感。你自信、果断，能够在压力下保持镇定。你享受冒险和挑战，喜欢尝试新事物。'
+            },
+            'ESFP': {
+                icon: '🎉',
+                name: '表演者',
+                description: '你是一个充满活力和魅力的表演者，善于享受生活的乐趣。你更倾向于活在当下，享受即时的满足感。你乐观、友好，善于与他人建立联系。你享受自由和灵活性，喜欢探索新的体验和可能性。'
+            }
+        };
+
+        let currentQuestion = 0;
+        let answers = [];
+        let scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+
+        // 初始化测试
+        function initTest() {
+            answers = [];
+            scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+            currentQuestion = 0;
+            
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            questions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-container';
+                questionDiv.id = `question-${index}`;
+                
+                const optionsHtml = question.options.map((option, optIndex) => `
+                    <label class="option" onclick="selectOption(${index}, ${optIndex})">
+                        <input type="radio" name="question-${index}" value="${optIndex}">
+                        <span class="option-label">${option.label}</span>
+                    </label>
+                `).join('');
+                
+                questionDiv.innerHTML = `
+                    <div class="question">
+                        <div class="question-number">问题 ${index + 1} / ${questions.length}</div>
+                        <div class="question-text">${question.text}</div>
+                        <div class="options">${optionsHtml}</div>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn-prev" onclick="prevQuestion()" ${index === 0 ? 'disabled' : ''}>上一题</button>
+                        ${index === questions.length - 1 
+                            ? '<button class="btn-submit" onclick="submitTest()">提交测试</button>'
+                            : '<button class="btn-next" onclick="nextQuestion()">下一题</button>'
+                        }
+                    </div>
+                `;
+                
+                container.appendChild(questionDiv);
+            });
+            
+            showQuestion(0);
+            updateProgress();
+        }
+
+        // 显示指定问题
+        function showQuestion(index) {
+            document.querySelectorAll('.question-container').forEach((q, i) => {
+                q.classList.toggle('active', i === index);
+            });
+            currentQuestion = index;
+            updateProgress();
+        }
+
+        // 选择选项
+        function selectOption(questionIndex, optionIndex) {
+            const question = questions[questionIndex];
+            const option = question.options[optionIndex];
+            
+            // 更新答案
+            answers[questionIndex] = optionIndex;
+            
+            // 更新UI
+            const questionDiv = document.getElementById(`question-${questionIndex}`);
+            questionDiv.querySelectorAll('.option').forEach((opt, i) => {
+                opt.classList.toggle('selected', i === optionIndex);
+            });
+            
+            // 更新分数
+            Object.keys(option.score).forEach(key => {
+                scores[key] += option.score[key];
+            });
+        }
+
+        // 上一题
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                showQuestion(currentQuestion - 1);
+            }
+        }
+
+        // 下一题
+        function nextQuestion() {
+            if (answers[currentQuestion] === undefined) {
+                alert('请先选择一个答案');
+                return;
+            }
+            
+            if (currentQuestion < questions.length - 1) {
+                showQuestion(currentQuestion + 1);
+            }
+        }
+
+        // 提交测试
+        function submitTest() {
+            if (answers[currentQuestion] === undefined) {
+                alert('请先选择一个答案');
+                return;
+            }
+            
+            // 检查是否所有题目都已回答
+            if (answers.length !== questions.length) {
+                alert('请回答所有问题');
+                return;
+            }
+            
+            // 计算人格类型
+            const personalityType = 
+                (scores.E >= scores.I ? 'E' : 'I') +
+                (scores.S >= scores.N ? 'S' : 'N') +
+                (scores.T >= scores.F ? 'T' : 'F') +
+                (scores.J >= scores.P ? 'J' : 'P');
+            
+            // 显示结果
+            showResult(personalityType);
+            
+            // 可选：保存测试结果到服务器
+            saveTestResult(personalityType);
+        }
+
+        // 保存测试结果（可选功能）
+        async function saveTestResult(personalityType) {
+            try {
+                const response = await fetch('http://localhost:3000/api/personality-test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        personalityType: personalityType,
+                        scores: scores
+                    })
+                });
+                const data = await response.json();
+                console.log('测试结果已保存:', data);
+            } catch (error) {
+                console.log('保存测试结果失败（不影响测试）:', error);
+            }
+        }
+
+        // 显示结果
+        function showResult(type) {
+            document.getElementById('questionsContainer').style.display = 'none';
+            document.querySelector('.progress-bar').style.display = 'none';
+            document.querySelector('.progress-text').style.display = 'none';
+            
+            const typeInfo = personalityTypes[type];
+            document.getElementById('resultIcon').textContent = typeInfo.icon;
+            document.getElementById('resultType').textContent = `${type} - ${typeInfo.name}`;
+            document.getElementById('resultDescription').textContent = typeInfo.description;
+            
+            // 显示分数
+            const scoresHtml = `
+                <div class="score-item">
+                    <div class="score-label">外向 (E)</div>
+                    <div class="score-value">${scores.E}</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">内向 (I)</div>
+                    <div class="score-value">${scores.I}</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">感觉 (S)</div>
+                    <div class="score-value">${scores.S}</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">直觉 (N)</div>
+                    <div class="score-value">${scores.N}</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">思考 (T)</div>
+                    <div class="score-value">${scores.T}</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">情感 (F)</div>
+                    <div class="score-value">${scores.F}</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">判断 (J)</div>
+                    <div class="score-value">${scores.J}</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">感知 (P)</div>
+                    <div class="score-value">${scores.P}</div>
+                </div>
+            `;
+            document.getElementById('resultScores').innerHTML = scoresHtml;
+            
+            document.getElementById('resultContainer').classList.add('show');
+        }
+
+        // 重新开始测试
+        function restartTest() {
+            document.getElementById('resultContainer').classList.remove('show');
+            document.getElementById('questionsContainer').style.display = 'block';
+            document.querySelector('.progress-bar').style.display = 'block';
+            document.querySelector('.progress-text').style.display = 'block';
+            initTest();
+        }
+
+        // 更新进度
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `${currentQuestion + 1} / ${questions.length}`;
+        }
+
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', initTest);
+    </script>
+</body>
+</html>
+

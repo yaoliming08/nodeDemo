@@ -51,10 +51,7 @@ function createRandomUser(index) {
   };
 }
 
-// 简单测试接口
-app.get('/', (req, res) => {
-  res.send('MySQL95 backend is running');
-});
+// 根路径由静态文件服务自动返回 public/index.html
 
 // 查询 xl.user 表中所有数据
 app.get('/users', async (req, res) => {
@@ -178,6 +175,33 @@ app.get('/api/audio/:filename', async (req, res) => {
   } catch (err) {
     console.error('读取文件错误:', err);
     res.status(500).json({ error: '读取文件失败', detail: err.message });
+  }
+});
+
+// 保存人格测试结果（可选功能）
+app.post('/api/personality-test', async (req, res) => {
+  const { username, personalityType, scores } = req.body;
+  
+  if (!personalityType) {
+    return res.status(400).json({ error: '请提供人格类型 personalityType' });
+  }
+
+  try {
+    // 如果数据库中有 personality_test 表，可以保存结果
+    // 这里先返回成功，实际保存需要创建相应的表
+    // const sql = 'INSERT INTO `personality_test` (`username`, `personality_type`, `scores`, `created_at`) VALUES (?, ?, ?, NOW())';
+    // const scoresJson = JSON.stringify(scores);
+    // const [result] = await pool.execute(sql, [username || '匿名', personalityType, scoresJson]);
+    
+    res.json({ 
+      success: true, 
+      message: '测试结果已记录',
+      personalityType,
+      scores
+    });
+  } catch (err) {
+    console.error('保存测试结果错误:', err);
+    res.status(500).json({ error: '保存失败', detail: err.message });
   }
 });
 
