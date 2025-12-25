@@ -4,6 +4,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const multer = require('multer');
 
 const app = express();
 const port = 3000;
@@ -23,6 +24,12 @@ const pool = mysql.createPool(dbConfig);
 app.use(express.json());
 // 允许访问静态文件（HTML页面）
 app.use(express.static('public'));
+
+// 配置文件上传
+const upload = multer({ 
+  dest: 'uploads/',
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+});
 
 // 生成随机用户数据的工具函数
 function createRandomUser(index) {
@@ -543,6 +550,196 @@ app.post('/api/ai-chat', async (req, res) => {
     }
   }
 });
+
+// 商品识别API（使用豆包AI多模态能力）
+app.post('/api/identify-product', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: '请上传图片文件' });
+  }
+
+  const DOUBAO_API_KEY = process.env.DOUBAO_API_KEY || '508ec7e7-b2c5-4f38-9470-e34bf7d39f12';
+  const DOUBAO_API_URL = process.env.DOUBAO_API_URL || 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
+
+  try {
+    // 读取图片文件并转换为base64
+    const imageBuffer = await fs.readFile(req.file.path);
+    const imageBase64 = imageBuffer.toString('base64');
+    const imageMimeType = req.file.mimetype;
+    const imageDataUrl = `data:${imageMimeType};base64,${imageBase64}`;
+
+    // 调用豆包AI识别商品
+    const response = await axios.post(DOUBAO_API_URL, {
+      model: 'doubao-seed-1-6-251015',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: {
+                url: imageDataUrl
+              }
+            },
+            {
+              type: 'text',
+              text: '请识别这张图片中的商品，告诉我：1. 商品名称（尽量详细，包含品牌、型号等关键信息）2. 商品类型 3. 3-5个搜索关键词（用逗号分隔）。请用JSON格式返回：{"productName": "商品名称", "category": "商品类型", "keywords": ["关键词1", "关键词2"]}'
+            }
+          ]
+        }
+      ],
+      max_completion_tokens: 1000
+    }, {
+      headers: {
+        'Authorization': `Bearer ${DOUBAO_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      timeout: 30000
+    });
+
+    // 解析AI返回的商品信息
+    let productInfo;
+    const aiResponse = response.data.choices[0].message.content;
+    
+    // 尝试从AI回复中提取JSON
+    try {
+      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        productInfo = JSON.parse(jsonMatch[0]);
+      } else {
+        // 如果没有JSON，尝试解析文本
+        productInfo = {
+          productName: aiResponse.split('\n')[0] || '未识别商品',
+          category: '未知',
+          keywords: extractKeywords(aiResponse)
+        };
+      }
+    } catch (e) {
+      // 如果解析失败，使用AI原始回复
+      productInfo = {
+        productName: aiResponse.substring(0, 100) || '未识别商品',
+        category: '未知',
+        keywords: extractKeywords(aiResponse)
+      };
+    }
+
+    // 清理临时文件
+    await fs.unlink(req.file.path).catch(() => {});
+
+    res.json({
+      success: true,
+      productName: productInfo.productName,
+      category: productInfo.category,
+      keywords: productInfo.keywords || []
+    });
+
+  } catch (err) {
+    // 清理临时文件
+    if (req.file) {
+      await fs.unlink(req.file.path).catch(() => {});
+    }
+
+    console.error('商品识别错误:', err);
+    res.status(500).json({ 
+      error: '商品识别失败', 
+      detail: err.response?.data?.error?.message || err.message 
+    });
+  }
+});
+
+// 提取关键词的辅助函数
+function extractKeywords(text) {
+  const keywords = [];
+  // 提取可能的品牌和型号
+  const brandPattern = /(?:品牌|牌子)[:：]\s*([^\n,，]+)/i;
+  const modelPattern = /(?:型号|规格)[:：]\s*([^\n,，]+)/i;
+  
+  const brandMatch = text.match(brandPattern);
+  const modelMatch = text.match(modelPattern);
+  
+  if (brandMatch) keywords.push(brandMatch[1].trim());
+  if (modelMatch) keywords.push(modelMatch[1].trim());
+  
+  // 提取常见商品关键词
+  const commonKeywords = ['手机', '电脑', '耳机', '键盘', '鼠标', '衣服', '鞋子', '包', '手表'];
+  commonKeywords.forEach(keyword => {
+    if (text.includes(keyword) && !keywords.includes(keyword)) {
+      keywords.push(keyword);
+    }
+  });
+  
+  return keywords.slice(0, 5);
+}
+
+// 商品价格查询API
+app.post('/api/search-prices', async (req, res) => {
+  const { productName, keywords = [] } = req.body;
+  
+  if (!productName) {
+    return res.status(400).json({ error: '请提供商品名称' });
+  }
+
+  try {
+    // 搜索关键词
+    const searchKeywords = keywords.length > 0 ? keywords.join(' ') : productName;
+    
+    // 由于直接爬取电商平台有反爬虫机制，这里提供一个框架
+    // 实际使用时可以：
+    // 1. 使用第三方比价API（如：比价网API、商品比价API等）
+    // 2. 使用爬虫框架（如puppeteer）模拟浏览器访问
+    // 3. 使用电商平台的开放API（如果有）
+    
+    // 这里先返回模拟数据作为示例
+    // 实际项目中需要替换为真实的爬虫或API调用
+    const prices = await searchPricesFromPlatforms(searchKeywords);
+    
+    res.json({
+      success: true,
+      productName: productName,
+      keywords: keywords,
+      ...prices
+    });
+
+  } catch (err) {
+    console.error('价格查询错误:', err);
+    res.status(500).json({ 
+      error: '价格查询失败', 
+      detail: err.message 
+    });
+  }
+});
+
+// 从各平台搜索价格（模拟数据，实际需要替换为真实爬虫）
+async function searchPricesFromPlatforms(keywords) {
+  // 注意：这里返回的是模拟数据
+  // 实际实现需要：
+  // 1. 使用puppeteer等工具爬取电商平台
+  // 2. 或使用第三方比价API服务
+  // 3. 或使用电商平台的开放API
+  
+  // 模拟数据生成
+  const basePrice = 100 + Math.random() * 500;
+  
+  const generatePrices = (platform, count = 10) => {
+    const prices = [];
+    for (let i = 0; i < count; i++) {
+      const variation = (Math.random() - 0.5) * 200; // ±100的波动
+      const price = (basePrice + variation).toFixed(2);
+      prices.push({
+        shopName: `${platform}店铺${i + 1}`,
+        price: price,
+        link: `https://www.${platform === 'taobao' ? 'taobao.com' : platform === 'pdd' ? 'pinduoduo.com' : 'jd.com'}/item/${Math.random().toString(36).substr(2, 9)}`
+      });
+    }
+    // 按价格排序
+    return prices.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+  };
+
+  return {
+    taobao: generatePrices('taobao', 10),
+    pdd: generatePrices('pdd', 10),
+    jd: generatePrices('jd', 10)
+  };
+}
 
 app.listen(port, () => {
   console.log(`Server listening on http://localhost:${port}`);
