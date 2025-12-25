@@ -68,7 +68,7 @@ app.get('/users', async (req, res) => {
   }
 });
 
-// 根据用户名查询用户数据
+// 根据用户名查询用户数据（支持模糊搜索）
 app.get('/users/search', async (req, res) => {
   const { username } = req.query;
   
@@ -77,14 +77,17 @@ app.get('/users/search', async (req, res) => {
   }
 
   try {
-    const sql = 'SELECT * FROM `user` WHERE `username` = ?';
-    const [rows] = await pool.query(sql, [username]);
+    // 使用 LIKE 进行模糊搜索，% 表示任意字符
+    const sql = 'SELECT * FROM `user` WHERE `username` LIKE ?';
+    const searchPattern = `%${username}%`;
+    const [rows] = await pool.query(sql, [searchPattern]);
     
     if (rows.length === 0) {
-      return res.json({ message: '未找到该用户', data: null });
+      return res.json({ message: '未找到匹配的用户', data: [] });
     }
     
-    res.json({ message: '查询成功', data: rows[0] });
+    // 返回所有匹配的结果
+    res.json({ message: '查询成功', data: rows, count: rows.length });
   } catch (err) {
     console.error('DB error:', err);
     res.status(500).json({ error: 'Database error', detail: err.message });
