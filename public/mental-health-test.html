@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心理健康评估</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 30px;
+            color: #856404;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .warning strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .test-selector {
+            margin-bottom: 30px;
+        }
+
+        .test-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .test-option {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .test-option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: translateY(-3px);
+        }
+
+        .test-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .test-option-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .test-option-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .test-option-desc {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .question-container {
+            display: none;
+        }
+
+        .question-container.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .question {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .option-label {
+            flex: 1;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-prev {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-prev:hover:not(:disabled) {
+            background: #d0d0d0;
+            transform: translateY(-2px);
+        }
+
+        .btn-next, .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-next:hover:not(:disabled), .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            display: none;
+        }
+
+        .result-container.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .result-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .result-score {
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .result-level {
+            font-size: 24px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .result-description {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: left;
+            line-height: 1.8;
+            color: #555;
+            font-size: 16px;
+        }
+
+        .result-suggestion {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .result-suggestion h3 {
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+
+        .result-suggestion ul {
+            margin-left: 20px;
+            color: #555;
+        }
+
+        .result-suggestion li {
+            margin: 8px 0;
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-top: 20px;
+            padding: 12px 40px;
+            display: block;
+            margin: 30px auto 0;
+        }
+
+        .btn-restart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .level-low { color: #4CAF50; }
+        .level-mild { color: #FF9800; }
+        .level-moderate { color: #FF5722; }
+        .level-severe { color: #F44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 心理健康评估</h1>
+        <p class="subtitle">基于权威医学量表，科学评估您的心理健康状况</p>
+
+        <div class="warning">
+            <strong>⚠️ 重要提示：</strong>
+            本测试仅供参考，不能替代专业医疗诊断。如有严重心理困扰，请及时咨询专业心理医生或精神科医生。
+        </div>
+
+        <!-- 测试选择器 -->
+        <div class="test-selector" id="testSelector">
+            <h2 style="text-align: center; margin-bottom: 20px; color: #333;">请选择要进行的测试</h2>
+            <div class="test-options">
+                <div class="test-option" onclick="selectTest('phq9')">
+                    <div class="test-option-icon">😔</div>
+                    <div class="test-option-title">抑郁评估</div>
+                    <div class="test-option-desc">PHQ-9量表<br>9道题目</div>
+                </div>
+                <div class="test-option" onclick="selectTest('gad7')">
+                    <div class="test-option-icon">😰</div>
+                    <div class="test-option-title">焦虑评估</div>
+                    <div class="test-option-desc">GAD-7量表<br>7道题目</div>
+                </div>
+                <div class="test-option" onclick="selectTest('mdq')">
+                    <div class="test-option-icon">🔄</div>
+                    <div class="test-option-title">双向情感障碍</div>
+                    <div class="test-option-desc">MDQ量表<br>13道题目</div>
+                </div>
+                <div class="test-option" onclick="selectTest('pss')">
+                    <div class="test-option-icon">😫</div>
+                    <div class="test-option-title">压力评估</div>
+                    <div class="test-option-desc">PSS量表<br>10道题目</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 进度条 -->
+        <div class="progress-text" id="progressText" style="display: none;">
+            <span id="progressTextContent">0 / 0</span>
+        </div>
+        <div class="progress-bar" id="progressBar" style="display: none;">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <!-- 问题容器 -->
+        <div id="questionsContainer"></div>
+
+        <!-- 结果容器 -->
+        <div class="result-container" id="resultContainer">
+            <div class="result-header">
+                <div class="result-icon" id="resultIcon">📊</div>
+                <div class="result-title">评估完成</div>
+                <div class="result-score" id="resultScore"></div>
+                <div class="result-level" id="resultLevel"></div>
+            </div>
+            <div class="result-description" id="resultDescription"></div>
+            <div class="result-suggestion" id="resultSuggestion"></div>
+            <button class="btn-restart" onclick="restartTest()">重新测试</button>
+        </div>
+    </div>
+
+    <script>
+        // 测试数据 - 基于权威医学量表
+        const tests = {
+            phq9: {
+                name: '抑郁评估 (PHQ-9)',
+                icon: '😔',
+                questions: [
+                    { text: '做事时提不起劲或没有兴趣', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]},
+                    { text: '感到心情低落、沮丧或绝望', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]},
+                    { text: '入睡困难、睡眠不稳或睡眠过多', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]},
+                    { text: '感到疲倦或没有活力', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]},
+                    { text: '食欲不振或吃太多', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]},
+                    { text: '觉得自己很糟，或觉得自己很失败，或让自己或家人失望', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]},
+                    { text: '对事物专注有困难，例如阅读报纸或看电视时', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]},
+                    { text: '动作或说话速度缓慢到别人已经察觉，或正好相反，烦躁或坐立不安、动来动去的情况更胜于平常', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]},
+                    { text: '有不如死掉或用某种方式伤害自己的念头', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]}
+                ],
+                evaluate: (score) => {
+                    if (score <= 4) return {
+                        level: '无或极轻微',
+                        levelClass: 'level-low',
+                        description: '您的抑郁症状非常轻微或不存在，心理健康状况良好。',
+                        suggestion: '继续保持良好的生活习惯，规律作息，适当运动，保持社交活动。'
+                    };
+                    if (score <= 9) return {
+                        level: '轻度抑郁',
+                        levelClass: 'level-mild',
+                        description: '您可能存在轻度的抑郁症状。建议关注自己的情绪变化，适当调整生活方式。',
+                        suggestion: '建议：1) 保持规律作息；2) 增加户外运动；3) 与朋友家人多交流；4) 如症状持续，考虑咨询心理医生。'
+                    };
+                    if (score <= 14) return {
+                        level: '中度抑郁',
+                        levelClass: 'level-moderate',
+                        description: '您存在中度的抑郁症状，建议寻求专业帮助。',
+                        suggestion: '建议：1) 尽快咨询专业心理医生或精神科医生；2) 考虑接受心理治疗或药物治疗；3) 保持规律作息和运动；4) 寻求家人朋友的支持。'
+                    };
+                    return {
+                        level: '中重度至重度抑郁',
+                        levelClass: 'level-severe',
+                        description: '您存在中重度至重度的抑郁症状，强烈建议立即寻求专业医疗帮助。',
+                        suggestion: '强烈建议：1) 立即咨询精神科医生；2) 可能需要药物治疗；3) 考虑心理治疗；4) 如有自伤念头，请立即拨打心理危机干预热线或前往医院急诊科。'
+                    };
+                }
+            },
+            gad7: {
+                name: '焦虑评估 (GAD-7)',
+                icon: '😰',
+                questions: [
+                    { text: '感觉紧张、焦虑或急躁', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]},
+                    { text: '无法停止或控制担忧', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]},
+                    { text: '对各种各样的事情担忧过多', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]},
+                    { text: '很难放松下来', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]},
+                    { text: '由于不安而无法静坐', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]},
+                    { text: '变得容易烦恼或易怒', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]},
+                    { text: '感到害怕，好像会发生什么可怕的事情', options: [
+                        { label: '完全没有', score: 0 },
+                        { label: '好几天', score: 1 },
+                        { label: '一半以上的天数', score: 2 },
+                        { label: '几乎每天', score: 3 }
+                    ]}
+                ],
+                evaluate: (score) => {
+                    if (score <= 4) return {
+                        level: '无或极轻微',
+                        levelClass: 'level-low',
+                        description: '您的焦虑症状非常轻微或不存在，心理健康状况良好。',
+                        suggestion: '继续保持良好的生活习惯，学习放松技巧，保持规律作息。'
+                    };
+                    if (score <= 9) return {
+                        level: '轻度焦虑',
+                        levelClass: 'level-mild',
+                        description: '您可能存在轻度的焦虑症状。建议关注自己的情绪变化，学习放松技巧。',
+                        suggestion: '建议：1) 学习深呼吸、冥想等放松技巧；2) 保持规律作息；3) 适当运动；4) 如症状持续，考虑咨询心理医生。'
+                    };
+                    if (score <= 14) return {
+                        level: '中度焦虑',
+                        levelClass: 'level-moderate',
+                        description: '您存在中度的焦虑症状，建议寻求专业帮助。',
+                        suggestion: '建议：1) 尽快咨询专业心理医生或精神科医生；2) 考虑接受心理治疗或药物治疗；3) 学习放松技巧；4) 保持规律作息和运动。'
+                    };
+                    return {
+                        level: '重度焦虑',
+                        levelClass: 'level-severe',
+                        description: '您存在重度的焦虑症状，强烈建议立即寻求专业医疗帮助。',
+                        suggestion: '强烈建议：1) 立即咨询精神科医生；2) 可能需要药物治疗；3) 考虑心理治疗；4) 学习放松技巧和应对策略。'
+                    };
+                }
+            },
+            mdq: {
+                name: '双向情感障碍评估 (MDQ)',
+                icon: '🔄',
+                questions: [
+                    { text: '您是否有一段时间感到情绪高涨、兴奋或易怒？', options: [
+                        { label: '是', score: 1 },
+                        { label: '否', score: 0 }
+                    ]},
+                    { text: '在这段时间里，您是否感到比平时更自信？', options: [
+                        { label: '是', score: 1 },
+                        { label: '否', score: 0 }
+                    ]},
+                    { text: '您是否比平时需要更少的睡眠，但仍然感觉休息得很好？', options: [
+                        { label: '是', score: 1 },
+                        { label: '否', score: 0 }
+                    ]},
+                    { text: '您是否比平时更健谈，或者感觉必须不停地说话？', options: [
+                        { label: '是', score: 1 },
+                        { label: '否', score: 0 }
+                    ]},
+                    { text: '您的思维是否比平时更快，或者感觉思维在飞速运转？', options: [
+                        { label: '是', score: 1 },
+                        { label: '否', score: 0 }
+                    ]},
+                    { text: '您是否容易被周围的事物分散注意力，或者发现很难集中注意力？', options: [
+                        { label: '是', score: 1 },
+                        { label: '否', score: 0 }
+                    ]},
+                    { text: '您的精力是否比平时更充沛，或者比平时做了更多的事情？', options: [
+                        { label: '是', score: 1 },
+                        { label: '否', score: 0 }
+                    ]},
+                    { text: '您是否比平时更冲动，或者做了平时不会做的事情？', options: [
+                        { label: '是', score: 1 },
+                        { label: '否', score: 0 }
+                    ]},
+                    { text: '您是否比平时更活跃，或者坐立不安？', options: [
+                        { label: '是', score: 1 },
+                        { label: '否', score: 0 }
+                    ]},
+                    { text: '您是否有一段时间感到情绪低落、沮丧或绝望？', options: [
+                        { label: '是', score: 1 },
+                        { label: '否', score: 0 }
+                    ]},
+                    { text: '在这段时间里，您是否对以前喜欢做的事情失去了兴趣？', options: [
+                        { label: '是', score: 1 },
+                        { label: '否', score: 0 }
+                    ]},
+                    { text: '您是否感到疲倦或没有活力？', options: [
+                        { label: '是', score: 1 },
+                        { label: '否', score: 0 }
+                    ]},
+                    { text: '这些情绪变化是否对您的工作、家庭生活或社交关系造成了问题？', options: [
+                        { label: '是', score: 1 },
+                        { label: '否', score: 0 }
+                    ]}
+                ],
+                evaluate: (score, answers) => {
+                    // MDQ评估：前9题至少7题答"是"，且第13题答"是"
+                    const first9Score = answers.slice(0, 9).reduce((sum, a) => sum + (a || 0), 0);
+                    const lastAnswer = answers[12] || 0;
+                    
+                    if (first9Score >= 7 && lastAnswer === 1) {
+                        return {
+                            level: '可能存在双向情感障碍',
+                            levelClass: 'level-severe',
+                            description: '根据MDQ量表评估，您可能存在双向情感障碍的风险。双向情感障碍是一种需要专业治疗的心理疾病，表现为情绪在抑郁和躁狂之间波动。',
+                            suggestion: '强烈建议：1) 立即咨询精神科医生进行专业评估；2) 可能需要药物治疗；3) 考虑心理治疗；4) 保持规律作息，避免过度刺激；5) 寻求家人朋友的支持。'
+                        };
+                    }
+                    if (first9Score >= 5) {
+                        return {
+                            level: '需要进一步评估',
+                            levelClass: 'level-moderate',
+                            description: '您的一些症状值得关注，建议进行更详细的专业评估。',
+                            suggestion: '建议：1) 咨询专业心理医生或精神科医生；2) 详细描述您的情绪变化情况；3) 保持规律作息；4) 记录情绪变化日记。'
+                        };
+                    }
+                    return {
+                        level: '风险较低',
+                        levelClass: 'level-low',
+                        description: '根据MDQ量表评估，您存在双向情感障碍的风险较低。',
+                        suggestion: '建议：1) 继续保持良好的生活习惯；2) 关注自己的情绪变化；3) 如有明显情绪波动，及时咨询专业医生。'
+                    };
+                }
+            },
+            pss: {
+                name: '压力评估 (PSS)',
+                icon: '😫',
+                questions: [
+                    { text: '在上个月，您有多少次因为一些意外发生的事情而感到心烦意乱？', options: [
+                        { label: '从来没有', score: 0 },
+                        { label: '几乎没有', score: 1 },
+                        { label: '有时', score: 2 },
+                        { label: '相当经常', score: 3 },
+                        { label: '非常经常', score: 4 }
+                    ]},
+                    { text: '在上个月，您有多少次感到无法控制生活中重要的事情？', options: [
+                        { label: '从来没有', score: 0 },
+                        { label: '几乎没有', score: 1 },
+                        { label: '有时', score: 2 },
+                        { label: '相当经常', score: 3 },
+                        { label: '非常经常', score: 4 }
+                    ]},
+                    { text: '在上个月，您有多少次感到紧张和"压力"？', options: [
+                        { label: '从来没有', score: 0 },
+                        { label: '几乎没有', score: 1 },
+                        { label: '有时', score: 2 },
+                        { label: '相当经常', score: 3 },
+                        { label: '非常经常', score: 4 }
+                    ]},
+                    { text: '在上个月，您有多少次感到有信心能够处理自己的个人问题？', options: [
+                        { label: '从来没有', score: 4 },
+                        { label: '几乎没有', score: 3 },
+                        { label: '有时', score: 2 },
+                        { label: '相当经常', score: 1 },
+                        { label: '非常经常', score: 0 }
+                    ]},
+                    { text: '在上个月，您有多少次感到事情的发展如您所愿？', options: [
+                        { label: '从来没有', score: 4 },
+                        { label: '几乎没有', score: 3 },
+                        { label: '有时', score: 2 },
+                        { label: '相当经常', score: 1 },
+                        { label: '非常经常', score: 0 }
+                    ]},
+                    { text: '在上个月，您有多少次发现自己无法应付所有必须做的事情？', options: [
+                        { label: '从来没有', score: 0 },
+                        { label: '几乎没有', score: 1 },
+                        { label: '有时', score: 2 },
+                        { label: '相当经常', score: 3 },
+                        { label: '非常经常', score: 4 }
+                    ]},
+                    { text: '在上个月，您有多少次能够控制生活中的恼怒情绪？', options: [
+                        { label: '从来没有', score: 4 },
+                        { label: '几乎没有', score: 3 },
+                        { label: '有时', score: 2 },
+                        { label: '相当经常', score: 1 },
+                        { label: '非常经常', score: 0 }
+                    ]},
+                    { text: '在上个月，您有多少次感到自己是事情的主宰者？', options: [
+                        { label: '从来没有', score: 4 },
+                        { label: '几乎没有', score: 3 },
+                        { label: '有时', score: 2 },
+                        { label: '相当经常', score: 1 },
+                        { label: '非常经常', score: 0 }
+                    ]},
+                    { text: '在上个月，您有多少次因为发生超出您控制范围的事情而感到生气？', options: [
+                        { label: '从来没有', score: 0 },
+                        { label: '几乎没有', score: 1 },
+                        { label: '有时', score: 2 },
+                        { label: '相当经常', score: 3 },
+                        { label: '非常经常', score: 4 }
+                    ]},
+                    { text: '在上个月，您有多少次感到困难堆积如山，无法克服？', options: [
+                        { label: '从来没有', score: 0 },
+                        { label: '几乎没有', score: 1 },
+                        { label: '有时', score: 2 },
+                        { label: '相当经常', score: 3 },
+                        { label: '非常经常', score: 4 }
+                    ]}
+                ],
+                evaluate: (score) => {
+                    if (score <= 13) return {
+                        level: '低压力',
+                        levelClass: 'level-low',
+                        description: '您的压力水平较低，能够较好地应对生活中的挑战。',
+                        suggestion: '继续保持良好的压力管理习惯，保持规律作息，适当运动，保持社交活动。'
+                    };
+                    if (score <= 26) return {
+                        level: '中等压力',
+                        levelClass: 'level-mild',
+                        description: '您存在中等程度的压力，需要关注压力管理。',
+                        suggestion: '建议：1) 学习压力管理技巧；2) 保持规律作息；3) 适当运动；4) 寻求支持；5) 如压力持续，考虑咨询心理医生。'
+                    };
+                    return {
+                        level: '高压力',
+                        levelClass: 'level-severe',
+                        description: '您的压力水平较高，可能影响身心健康，建议采取积极措施应对。',
+                        suggestion: '建议：1) 尽快学习压力管理技巧；2) 考虑咨询心理医生；3) 保持规律作息和运动；4) 寻求家人朋友的支持；5) 必要时调整工作或生活安排。'
+                    };
+                }
+            }
+        };
+
+        let currentTest = null;
+        let currentQuestion = 0;
+        let answers = [];
+
+        // 选择测试
+        function selectTest(testId) {
+            currentTest = tests[testId];
+            if (!currentTest) return;
+
+            // 更新UI
+            document.querySelectorAll('.test-option').forEach(opt => opt.classList.remove('selected'));
+            event.target.closest('.test-option').classList.add('selected');
+
+            // 隐藏选择器，显示测试
+            document.getElementById('testSelector').style.display = 'none';
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('progressText').style.display = 'block';
+
+            // 初始化测试
+            initTest();
+        }
+
+        // 初始化测试
+        function initTest() {
+            answers = [];
+            currentQuestion = 0;
+            
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            currentTest.questions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-container';
+                questionDiv.id = `question-${index}`;
+                
+                const optionsHtml = question.options.map((option, optIndex) => `
+                    <label class="option" onclick="selectOption(${index}, ${optIndex})">
+                        <input type="radio" name="question-${index}" value="${optIndex}">
+                        <span class="option-label">${option.label}</span>
+                    </label>
+                `).join('');
+                
+                questionDiv.innerHTML = `
+                    <div class="question">
+                        <div class="question-number">问题 ${index + 1} / ${currentTest.questions.length}</div>
+                        <div class="question-text">${question.text}</div>
+                        <div class="options">${optionsHtml}</div>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn-prev" onclick="prevQuestion()" ${index === 0 ? 'disabled' : ''}>上一题</button>
+                        ${index === currentTest.questions.length - 1 
+                            ? '<button class="btn-submit" onclick="submitTest()">提交测试</button>'
+                            : '<button class="btn-next" onclick="nextQuestion()">下一题</button>'
+                        }
+                    </div>
+                `;
+                
+                container.appendChild(questionDiv);
+            });
+            
+            showQuestion(0);
+            updateProgress();
+        }
+
+        // 显示指定问题
+        function showQuestion(index) {
+            document.querySelectorAll('.question-container').forEach((q, i) => {
+                q.classList.toggle('active', i === index);
+            });
+            currentQuestion = index;
+            updateProgress();
+        }
+
+        // 选择选项
+        function selectOption(questionIndex, optionIndex) {
+            const question = currentTest.questions[questionIndex];
+            const option = question.options[optionIndex];
+            
+            // 更新答案
+            answers[questionIndex] = option.score;
+            
+            // 更新UI
+            const questionDiv = document.getElementById(`question-${questionIndex}`);
+            questionDiv.querySelectorAll('.option').forEach((opt, i) => {
+                opt.classList.toggle('selected', i === optionIndex);
+            });
+        }
+
+        // 上一题
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                showQuestion(currentQuestion - 1);
+            }
+        }
+
+        // 下一题
+        function nextQuestion() {
+            if (answers[currentQuestion] === undefined) {
+                alert('请先选择一个答案');
+                return;
+            }
+            
+            if (currentQuestion < currentTest.questions.length - 1) {
+                showQuestion(currentQuestion + 1);
+            }
+        }
+
+        // 提交测试
+        function submitTest() {
+            if (answers[currentQuestion] === undefined) {
+                alert('请先选择一个答案');
+                return;
+            }
+            
+            // 检查是否所有题目都已回答
+            if (answers.length !== currentTest.questions.length) {
+                alert('请回答所有问题');
+                return;
+            }
+            
+            // 计算总分
+            const totalScore = answers.reduce((sum, score) => sum + (score || 0), 0);
+            
+            // 评估结果
+            const result = currentTest.evaluate(totalScore, answers);
+            
+            // 显示结果
+            showResult(totalScore, result);
+            
+            // 可选：保存测试结果
+            saveTestResult(currentTest.name, totalScore, result);
+        }
+
+        // 显示结果
+        function showResult(score, result) {
+            document.getElementById('questionsContainer').style.display = 'none';
+            document.querySelector('.progress-bar').style.display = 'none';
+            document.querySelector('.progress-text').style.display = 'none';
+            
+            document.getElementById('resultIcon').textContent = currentTest.icon;
+            document.getElementById('resultScore').textContent = `得分: ${score}`;
+            document.getElementById('resultLevel').textContent = result.level;
+            document.getElementById('resultLevel').className = `result-level ${result.levelClass}`;
+            document.getElementById('resultDescription').textContent = result.description;
+            document.getElementById('resultSuggestion').innerHTML = `
+                <h3>💡 建议</h3>
+                <div>${result.suggestion}</div>
+            `;
+            
+            document.getElementById('resultContainer').classList.add('show');
+        }
+
+        // 保存测试结果（可选）
+        async function saveTestResult(testName, score, result) {
+            try {
+                const response = await fetch('http://localhost:3000/api/mental-health-test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        testName: testName,
+                        score: score,
+                        level: result.level
+                    })
+                });
+                console.log('测试结果已保存');
+            } catch (error) {
+                console.log('保存测试结果失败（不影响测试）:', error);
+            }
+        }
+
+        // 重新开始测试
+        function restartTest() {
+            document.getElementById('resultContainer').classList.remove('show');
+            document.getElementById('testSelector').style.display = 'block';
+            document.getElementById('questionsContainer').style.display = 'block';
+            document.getElementById('progressBar').style.display = 'none';
+            document.getElementById('progressText').style.display = 'none';
+            document.getElementById('questionsContainer').innerHTML = '';
+            currentTest = null;
+            answers = [];
+            currentQuestion = 0;
+        }
+
+        // 更新进度
+        function updateProgress() {
+            if (!currentTest) return;
+            const progress = ((currentQuestion + 1) / currentTest.questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressTextContent').textContent = `${currentQuestion + 1} / ${currentTest.questions.length}`;
+        }
+    </script>
+</body>
+</html>
+
