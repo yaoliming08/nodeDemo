@@ -9,6 +9,7 @@ const audioRoutes = require('./api/audio');
 const testRoutes = require('./api/test');
 const toolsRoutes = require('./api/tools');
 const bookmarksRoutes = require('./api/bookmarks');
+const diariesRoutes = require('./api/diaries');
 
 const app = express();
 const port = 3000;
@@ -86,6 +87,7 @@ app.use('/api', audioRoutes);     // 音频相关：/api/audio/:filename
 app.use('/api', testRoutes);      // 测试相关：/api/personality-test, /api/mental-health-test
 app.use('/api', toolsRoutes);     // 工具类：/api/crawl, /api/ai-chat, /api/identify-product, /api/search-prices
 app.use('/api', bookmarksRoutes); // 网址导航：/api/bookmarks
+app.use('/api', diariesRoutes);    // 日记：/api/diaries
 app.use('/', userRoutes);         // 用户管理：/users, /users/search, /seed-users
 
 app.listen(port, () => {

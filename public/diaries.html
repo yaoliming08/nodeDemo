@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的日记本</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            .sidebar {
+                max-height: 400px;
+                overflow-y: auto;
+            }
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #333;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .diary-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .diary-item {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .diary-item:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .diary-item.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .diary-item-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .diary-item-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+
+        .diary-item-preview {
+            font-size: 12px;
+            color: #999;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .diary-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 300px;
+            font-family: inherit;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .diary-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .tags {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .tag {
+            padding: 4px 8px;
+            background: #f0f0f0;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边栏：日记列表 -->
+        <div class="sidebar">
+            <div class="header">
+                <h2>📔 日记列表</h2>
+                <button class="btn" onclick="newDiary()">+ 新建</button>
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+            <div class="loading" id="loading" style="display: none;">加载中...</div>
+            <div class="diary-list" id="diaryList"></div>
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-state-icon">📝</div>
+                <h3>还没有日记</h3>
+                <p>点击"新建"按钮开始写第一篇日记吧！</p>
+            </div>
+        </div>
+
+        <!-- 主内容区：日记编辑 -->
+        <div class="main-content">
+            <div id="diaryEditor" style="display: none;">
+                <div class="header">
+                    <h2 id="editorTitle">新建日记</h2>
+                    <div>
+                        <button class="btn btn-danger" onclick="deleteCurrentDiary()" id="deleteBtn" style="display: none;">删除</button>
+                        <button class="btn btn-secondary" onclick="cancelEdit()">取消</button>
+                        <button class="btn" onclick="saveDiary()">保存</button>
+                    </div>
+                </div>
+                <form id="diaryForm" class="diary-form">
+                    <input type="hidden" id="diaryId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="diary_date">日期 *</label>
+                            <input type="date" id="diary_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="title">标题（可选）</label>
+                            <input type="text" id="title" placeholder="给日记起个标题">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="mood">心情（可选）</label>
+                            <select id="mood">
+                                <option value="">选择心情</option>
+                                <option value="开心">😊 开心</option>
+                                <option value="难过">😢 难过</option>
+                                <option value="平静">😌 平静</option>
+                                <option value="兴奋">🤩 兴奋</option>
+                                <option value="焦虑">😰 焦虑</option>
+                                <option value="疲惫">😴 疲惫</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="weather">天气（可选）</label>
+                            <select id="weather">
+                                <option value="">选择天气</option>
+                                <option value="晴天">☀️ 晴天</option>
+                                <option value="多云">⛅ 多云</option>
+                                <option value="雨天">🌧️ 雨天</option>
+                                <option value="雪天">❄️ 雪天</option>
+                                <option value="阴天">☁️ 阴天</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="tags">标签（可选，多个标签用逗号分隔）</label>
+                        <input type="text" id="tags" placeholder="例如：工作,学习,生活">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="content">日记内容 *</label>
+                        <textarea id="content" required placeholder="记录今天的心情和发生的事情..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div id="diaryViewer" class="empty-state">
+                <div class="empty-state-icon">📖</div>
+                <h3>选择一篇日记开始阅读或编辑</h3>
+                <p>从左侧列表中选择日记，或点击"新建"创建新日记</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let diaries = [];
+        let currentDiaryId = null;
+
+        // 页面加载时
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadDiaries();
+            // 设置默认日期为今天
+            document.getElementById('diary_date').value = new Date().toISOString().split('T')[0];
+        });
+
+        // 检查登录状态
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/check-auth');
+                const data = await res.json();
+                if (!data.isAuthenticated) {
+                    window.location.href = '/login.html';
+                }
+            } catch (err) {
+                console.error('检查登录状态失败:', err);
+                window.location.href = '/login.html';
+            }
+        }
+
+        // 加载日记列表
+        async function loadDiaries() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const res = await fetch('/api/diaries');
+                const data = await res.json();
+                
+                if (data.success) {
+                    diaries = data.data;
+                    renderDiaryList();
+                } else {
+                    showError('加载日记失败');
+                }
+            } catch (err) {
+                console.error('加载日记失败:', err);
+                showError('加载日记失败，请稍后重试');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // 渲染日记列表
+        function renderDiaryList() {
+            const list = document.getElementById('diaryList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (diaries.length === 0) {
+                list.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            list.style.display = 'flex';
+            emptyState.style.display = 'none';
+            list.innerHTML = '';
+
+            // 按日期分组
+            const groupedDiaries = {};
+            diaries.forEach(diary => {
+                const date = diary.diary_date;
+                if (!groupedDiaries[date]) {
+                    groupedDiaries[date] = [];
+                }
+                groupedDiaries[date].push(diary);
+            });
+
+            // 按日期倒序显示
+            const sortedDates = Object.keys(groupedDiaries).sort((a, b) => b.localeCompare(a));
+
+            sortedDates.forEach(date => {
+                const dateHeader = document.createElement('div');
+                dateHeader.style.cssText = 'font-size: 12px; color: #999; margin-top: 15px; margin-bottom: 5px; font-weight: 600;';
+                dateHeader.textContent = formatDate(date);
+                list.appendChild(dateHeader);
+
+                groupedDiaries[date].forEach(diary => {
+                    const item = createDiaryItem(diary);
+                    list.appendChild(item);
+                });
+            });
+        }
+
+        // 创建日记列表项
+        function createDiaryItem(diary) {
+            const item = document.createElement('div');
+            item.className = 'diary-item';
+            item.setAttribute('data-id', diary.id);
+            
+            const preview = diary.content.length > 50 
+                ? diary.content.substring(0, 50) + '...' 
+                : diary.content;
+
+            item.innerHTML = `
+                <div class="diary-item-date">${formatDate(diary.diary_date)}</div>
+                <div class="diary-item-title">${diary.title || '无标题'}</div>
+                <div class="diary-item-preview">${escapeHtml(preview)}</div>
+            `;
+
+            item.addEventListener('click', () => {
+                selectDiary(diary.id);
+            });
+
+            return item;
+        }
+
+        // 选择日记
+        async function selectDiary(id) {
+            // 更新列表选中状态
+            document.querySelectorAll('.diary-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-id') == id) {
+                    item.classList.add('active');
+                }
+            });
+
+            try {
+                const res = await fetch(`/api/diaries/${id}`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    currentDiaryId = id;
+                    loadDiaryToEditor(data.data);
+                    document.getElementById('diaryEditor').style.display = 'block';
+                    document.getElementById('diaryViewer').style.display = 'none';
+                    document.getElementById('deleteBtn').style.display = 'inline-block';
+                    document.getElementById('editorTitle').textContent = '编辑日记';
+                }
+            } catch (err) {
+                console.error('加载日记失败:', err);
+                showError('加载日记失败');
+            }
+        }
+
+        // 新建日记
+        function newDiary() {
+            currentDiaryId = null;
+            document.getElementById('diaryForm').reset();
+            document.getElementById('diaryId').value = '';
+            document.getElementById('diary_date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('diaryEditor').style.display = 'block';
+            document.getElementById('diaryViewer').style.display = 'none';
+            document.getElementById('deleteBtn').style.display = 'none';
+            document.getElementById('editorTitle').textContent = '新建日记';
+            
+            // 取消列表选中
+            document.querySelectorAll('.diary-item').forEach(item => {
+                item.classList.remove('active');
+            });
+        }
+
+        // 取消编辑
+        function cancelEdit() {
+            document.getElementById('diaryEditor').style.display = 'none';
+            document.getElementById('diaryViewer').style.display = 'block';
+            currentDiaryId = null;
+            
+            // 取消列表选中
+            document.querySelectorAll('.diary-item').forEach(item => {
+                item.classList.remove('active');
+            });
+        }
+
+        // 加载日记到编辑器
+        function loadDiaryToEditor(diary) {
+            document.getElementById('diaryId').value = diary.id;
+            document.getElementById('diary_date').value = diary.diary_date;
+            document.getElementById('title').value = diary.title || '';
+            document.getElementById('content').value = diary.content;
+            document.getElementById('mood').value = diary.mood || '';
+            document.getElementById('weather').value = diary.weather || '';
+            document.getElementById('tags').value = diary.tags || '';
+        }
+
+        // 保存日记
+        async function saveDiary() {
+            const id = document.getElementById('diaryId').value;
+            const data = {
+                title: document.getElementById('title').value.trim() || null,
+                content: document.getElementById('content').value.trim(),
+                diary_date: document.getElementById('diary_date').value,
+                mood: document.getElementById('mood').value || null,
+                weather: document.getElementById('weather').value || null,
+                tags: document.getElementById('tags').value.trim() || null
+            };
+
+            if (!data.content) {
+                showError('请填写日记内容');
+                return;
+            }
+
+            try {
+                let res;
+                if (id) {
+                    // 更新
+                    res = await fetch(`/api/diaries/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    // 添加
+                    res = await fetch('/api/diaries', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+
+                const result = await res.json();
+                
+                if (res.ok && result.success) {
+                    showSuccess(id ? '日记更新成功' : '日记保存成功');
+                    await loadDiaries();
+                    if (result.data && result.data.id) {
+                        selectDiary(result.data.id);
+                    }
+                } else {
+                    showError(result.error || '保存失败');
+                }
+            } catch (err) {
+                console.error('保存失败:', err);
+                showError('保存失败，请稍后重试');
+            }
+        }
+
+        // 删除日记
+        async function deleteCurrentDiary() {
+            if (!currentDiaryId) return;
+            
+            if (!confirm('确定要删除这篇日记吗？删除后无法恢复。')) return;
+
+            try {
+                const res = await fetch(`/api/diaries/${currentDiaryId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await res.json();
+                
+                if (res.ok && result.success) {
+                    showSuccess('日记删除成功');
+                    currentDiaryId = null;
+                    cancelEdit();
+                    await loadDiaries();
+                } else {
+                    showError(result.error || '删除失败');
+                }
+            } catch (err) {
+                console.error('删除失败:', err);
+                showError('删除失败，请稍后重试');
+            }
+        }
+
+        // 工具函数
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            if (date.toDateString() === today.toDateString()) {
+                return '今天';
+            } else if (date.toDateString() === yesterday.toDateString()) {
+                return '昨天';
+            } else {
+                return date.toLocaleDateString('zh-CN', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    weekday: 'short'
+                });
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>
+
