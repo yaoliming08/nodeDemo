@@ -92,8 +92,27 @@ app.use('/api', diariesRoutes);    // 日记：/api/diaries
 app.use('/api', chatRoutes);       // 聊天室：/api/chat/messages
 app.use('/', userRoutes);         // 用户管理：/users, /users/search, /seed-users
 
-app.listen(port, () => {
+// 获取本机IP地址
+const os = require('os');
+function getLocalIP() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      // 跳过内部（即127.0.0.1）和非IPv4地址
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return 'localhost';
+}
+
+const localIP = getLocalIP();
+
+app.listen(port, '0.0.0.0', () => {
   console.log(`Server listening on http://localhost:${port}`);
+  console.log(`🌐 局域网访问地址: http://${localIP}:${port}`);
+  console.log(`   其他设备可通过此地址访问`);
   // 检查API密钥
   const { DOUBAO_API_KEY } = require('./aiUtils/config');
   if (!DOUBAO_API_KEY || DOUBAO_API_KEY === '') {
