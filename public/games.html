@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>解压小游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .game-icon {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .game-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .game-description {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        .game-container.active {
+            display: block;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .game-header h2 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .game-stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        /* 点击消除游戏样式 */
+        #bubbleGame {
+            text-align: center;
+        }
+
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .bubble:hover {
+            transform: scale(1.1);
+        }
+
+        .bubble.popped {
+            animation: pop 0.3s ease-out;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.3);
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .difficulty-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .back-btn {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 游戏列表 -->
+        <div id="gamesList">
+            <div class="header">
+                <h1>🎮 解压小游戏</h1>
+                <p>选择游戏，放松心情，释放压力</p>
+            </div>
+
+            <div class="games-grid">
+                <div class="game-card" onclick="startGame('bubble')">
+                    <div class="game-icon">🫧</div>
+                    <div class="game-title">泡泡消除</div>
+                    <div class="game-description">
+                        点击泡泡消除它们，看你能消除多少个！
+                        简单有趣，快速解压。
+                    </div>
+                </div>
+
+                <!-- 可以在这里添加更多游戏卡片 -->
+            </div>
+        </div>
+
+        <!-- 泡泡消除游戏 -->
+        <div id="bubbleGame" class="game-container">
+            <button class="btn btn-secondary back-btn" onclick="backToGames()">← 返回游戏列表</button>
+            
+            <div class="game-header">
+                <h2>🫧 泡泡消除</h2>
+                <div class="game-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">得分</div>
+                        <div class="stat-value" id="score">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">已消除</div>
+                        <div class="stat-value" id="popped">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">时间</div>
+                        <div class="stat-value" id="timer">60</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="difficulty-selector">
+                <button class="difficulty-btn active" data-difficulty="easy" onclick="setDifficulty('easy')">简单</button>
+                <button class="difficulty-btn" data-difficulty="medium" onclick="setDifficulty('medium')">中等</button>
+                <button class="difficulty-btn" data-difficulty="hard" onclick="setDifficulty('hard')">困难</button>
+            </div>
+
+            <div class="game-area" id="gameArea"></div>
+
+            <div class="game-controls">
+                <button class="btn" onclick="startBubbleGame()">开始游戏</button>
+                <button class="btn btn-secondary" onclick="pauseGame()" id="pauseBtn">暂停</button>
+                <button class="btn btn-secondary" onclick="resetGame()">重新开始</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentGame = null;
+        let gameInterval = null;
+        let timerInterval = null;
+        let score = 0;
+        let popped = 0;
+        let timeLeft = 60;
+        let isPaused = false;
+        let difficulty = 'easy';
+        let gameActive = false;
+
+        // 难度配置
+        const difficultyConfig = {
+            easy: {
+                bubbleCount: 5,
+                spawnInterval: 2000,
+                minSize: 40,
+                maxSize: 60,
+                speed: 1
+            },
+            medium: {
+                bubbleCount: 8,
+                spawnInterval: 1500,
+                minSize: 35,
+                maxSize: 55,
+                speed: 1.5
+            },
+            hard: {
+                bubbleCount: 12,
+                spawnInterval: 1000,
+                minSize: 30,
+                maxSize: 50,
+                speed: 2
+            }
+        };
+
+        // 开始游戏
+        function startGame(gameType) {
+            document.getElementById('gamesList').style.display = 'none';
+            
+            if (gameType === 'bubble') {
+                document.getElementById('bubbleGame').classList.add('active');
+                startBubbleGame();
+            }
+        }
+
+        // 返回游戏列表
+        function backToGames() {
+            document.getElementById('gamesList').style.display = 'block';
+            document.querySelectorAll('.game-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            resetGame();
+        }
+
+        // 设置难度
+        function setDifficulty(level) {
+            difficulty = level;
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-difficulty="${level}"]`).classList.add('active');
+            
+            if (gameActive) {
+                resetGame();
+                startBubbleGame();
+            }
+        }
+
+        // 开始泡泡游戏
+        function startBubbleGame() {
+            if (gameActive && !isPaused) return;
+            
+            resetGame();
+            gameActive = true;
+            isPaused = false;
+            document.getElementById('pauseBtn').textContent = '暂停';
+            
+            const config = difficultyConfig[difficulty];
+            const gameArea = document.getElementById('gameArea');
+            
+            // 生成初始泡泡
+            for (let i = 0; i < config.bubbleCount; i++) {
+                createBubble();
+            }
+            
+            // 定时生成新泡泡
+            gameInterval = setInterval(() => {
+                if (!isPaused) {
+                    createBubble();
+                }
+            }, config.spawnInterval);
+            
+            // 倒计时
+            timerInterval = setInterval(() => {
+                if (!isPaused) {
+                    timeLeft--;
+                    document.getElementById('timer').textContent = timeLeft;
+                    
+                    if (timeLeft <= 0) {
+                        endGame();
+                    }
+                }
+            }, 1000);
+        }
+
+        // 创建泡泡
+        function createBubble() {
+            if (!gameActive || isPaused) return;
+            
+            const config = difficultyConfig[difficulty];
+            const gameArea = document.getElementById('gameArea');
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            
+            // 随机大小
+            const size = Math.random() * (config.maxSize - config.minSize) + config.minSize;
+            bubble.style.width = size + 'px';
+            bubble.style.height = size + 'px';
+            
+            // 随机位置
+            const maxX = gameArea.offsetWidth - size;
+            const maxY = gameArea.offsetHeight - size;
+            bubble.style.left = Math.random() * maxX + 'px';
+            bubble.style.top = Math.random() * maxY + 'px';
+            
+            // 随机颜色
+            const colors = [
+                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                'linear-gradient(135deg, #30cfd0 0%, #330867 100%)'
+            ];
+            bubble.style.background = colors[Math.floor(Math.random() * colors.length)];
+            
+            // 随机数字或表情
+            const content = Math.random() > 0.5 
+                ? Math.floor(Math.random() * 100) 
+                : ['🎈', '🫧', '💫', '⭐', '✨', '🌟'][Math.floor(Math.random() * 6)];
+            bubble.textContent = content;
+            
+            // 点击消除
+            bubble.addEventListener('click', () => {
+                if (!gameActive || isPaused) return;
+                popBubble(bubble);
+            });
+            
+            gameArea.appendChild(bubble);
+            
+            // 动画效果
+            bubble.style.opacity = '0';
+            bubble.style.transform = 'scale(0)';
+            setTimeout(() => {
+                bubble.style.transition = 'all 0.3s ease';
+                bubble.style.opacity = '1';
+                bubble.style.transform = 'scale(1)';
+            }, 10);
+        }
+
+        // 消除泡泡
+        function popBubble(bubble) {
+            bubble.classList.add('popped');
+            bubble.style.pointerEvents = 'none';
+            
+            // 计算得分（泡泡越大分数越高）
+            const size = parseInt(bubble.style.width);
+            const points = Math.floor(size / 5);
+            score += points;
+            popped++;
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('popped').textContent = popped;
+            
+            // 移除泡泡
+            setTimeout(() => {
+                if (bubble.parentNode) {
+                    bubble.parentNode.removeChild(bubble);
+                }
+            }, 300);
+        }
+
+        // 暂停游戏
+        function pauseGame() {
+            if (!gameActive) return;
+            
+            isPaused = !isPaused;
+            document.getElementById('pauseBtn').textContent = isPaused ? '继续' : '暂停';
+        }
+
+        // 重置游戏
+        function resetGame() {
+            gameActive = false;
+            isPaused = false;
+            score = 0;
+            popped = 0;
+            timeLeft = 60;
+            
+            document.getElementById('score').textContent = '0';
+            document.getElementById('popped').textContent = '0';
+            document.getElementById('timer').textContent = '60';
+            document.getElementById('pauseBtn').textContent = '暂停';
+            
+            // 清除定时器
+            if (gameInterval) {
+                clearInterval(gameInterval);
+                gameInterval = null;
+            }
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            // 清除所有泡泡
+            const gameArea = document.getElementById('gameArea');
+            gameArea.innerHTML = '';
+        }
+
+        // 结束游戏
+        function endGame() {
+            gameActive = false;
+            isPaused = false;
+            
+            if (gameInterval) {
+                clearInterval(gameInterval);
+                gameInterval = null;
+            }
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            // 显示结果
+            setTimeout(() => {
+                alert(`游戏结束！\n\n得分：${score}\n消除泡泡：${popped}个\n\n${getResultMessage(score)}`);
+            }, 500);
+        }
+
+        // 获取结果消息
+        function getResultMessage(score) {
+            if (score >= 1000) return '🎉 太厉害了！你是泡泡消除大师！';
+            if (score >= 500) return '👍 很棒！继续加油！';
+            if (score >= 200) return '😊 不错的表现！';
+            return '💪 继续努力，你会更好的！';
+        }
+    </script>
+</body>
+</html>
