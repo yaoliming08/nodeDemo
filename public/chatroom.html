@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聊天室</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        .online-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .message-item {
+            margin-bottom: 20px;
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-item.own {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            flex-shrink: 0;
+            margin: 0 10px;
+        }
+
+        .message-item.own .message-avatar {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .message-content {
+            max-width: 70%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-item.own .message-content {
+            align-items: flex-end;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .message-item.own .message-header {
+            flex-direction: row-reverse;
+        }
+
+        .message-username {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .message-time {
+            color: #999;
+        }
+
+        .message-bubble {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            word-wrap: break-word;
+            word-break: break-word;
+            line-height: 1.5;
+        }
+
+        .message-item.own .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 2px solid #f0f0f0;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-actions input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-actions input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            white-space: nowrap;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 10px 20px;
+            font-size: 12px;
+            color: #999;
+            font-style: italic;
+        }
+
+        .typing-indicator.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                height: 100vh;
+                border-radius: 0;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💬 聊天室</h1>
+            <div class="header-info">
+                <div class="online-badge">
+                    <span id="onlineCount">0</span> 人在线
+                </div>
+                <button class="send-btn" onclick="window.location.href='/index.html'" style="background: rgba(255,255,255,0.2); padding: 8px 16px;">返回首页</button>
+            </div>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            <div class="loading" id="loading">加载中...</div>
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-state-icon">💬</div>
+                <h3>还没有消息</h3>
+                <p>发送第一条消息开始聊天吧！</p>
+            </div>
+            <div id="messagesList"></div>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="input-container">
+            <div class="input-wrapper">
+                <div class="input-actions">
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        placeholder="输入消息..." 
+                        maxlength="5000"
+                        onkeypress="handleKeyPress(event)"
+                    >
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUserId = null;
+        let currentUsername = null;
+        let lastMessageId = 0;
+        let isLoading = false;
+        let refreshInterval = null;
+
+        // 页面加载时
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadMessages();
+            // 每2秒刷新一次新消息
+            refreshInterval = setInterval(loadNewMessages, 2000);
+            // 每30秒更新在线人数
+            setInterval(updateOnlineCount, 30000);
+            updateOnlineCount();
+        });
+
+        // 页面卸载时清除定时器
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+
+        // 检查登录状态
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/check-auth');
+                const data = await res.json();
+                if (!data.isAuthenticated) {
+                    window.location.href = '/login.html';
+                } else {
+                    currentUserId = data.user.id;
+                    currentUsername = data.user.username;
+                }
+            } catch (err) {
+                console.error('检查登录状态失败:', err);
+                window.location.href = '/login.html';
+            }
+        }
+
+        // 加载消息列表
+        async function loadMessages() {
+            if (isLoading) return;
+            isLoading = true;
+
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const res = await fetch('/api/chat/messages?limit=50');
+                const data = await res.json();
+                
+                if (data.success) {
+                    const messages = data.data;
+                    if (messages.length > 0) {
+                        lastMessageId = messages[messages.length - 1].id;
+                        renderMessages(messages);
+                        scrollToBottom();
+                    } else {
+                        document.getElementById('emptyState').style.display = 'block';
+                    }
+                } else {
+                    showError('加载消息失败');
+                }
+            } catch (err) {
+                console.error('加载消息失败:', err);
+                showError('加载消息失败，请稍后重试');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                isLoading = false;
+            }
+        }
+
+        // 加载新消息
+        async function loadNewMessages() {
+            if (!lastMessageId) return;
+
+            try {
+                const res = await fetch(`/api/chat/messages/latest?after_id=${lastMessageId}`);
+                const data = await res.json();
+                
+                if (data.success && data.data.length > 0) {
+                    appendMessages(data.data);
+                    lastMessageId = data.data[data.data.length - 1].id;
+                }
+            } catch (err) {
+                console.error('加载新消息失败:', err);
+            }
+        }
+
+        // 渲染消息列表
+        function renderMessages(messages) {
+            const container = document.getElementById('messagesList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (messages.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            container.innerHTML = '';
+
+            messages.forEach(message => {
+                const messageEl = createMessageElement(message);
+                container.appendChild(messageEl);
+            });
+        }
+
+        // 追加新消息
+        function appendMessages(messages) {
+            const container = document.getElementById('messagesList');
+            const emptyState = document.getElementById('emptyState');
+            
+            emptyState.style.display = 'none';
+
+            messages.forEach(message => {
+                const messageEl = createMessageElement(message);
+                container.appendChild(messageEl);
+            });
+
+            scrollToBottom();
+        }
+
+        // 创建消息元素
+        function createMessageElement(message) {
+            const isOwn = message.user_id === currentUserId;
+            const item = document.createElement('div');
+            item.className = `message-item ${isOwn ? 'own' : ''}`;
+            
+            const avatarText = message.username ? message.username.charAt(0).toUpperCase() : '?';
+            const time = formatTime(message.created_at);
+
+            item.innerHTML = `
+                <div class="message-avatar">${avatarText}</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-username">${escapeHtml(message.username)}</span>
+                        <span class="message-time">${time}</span>
+                    </div>
+                    <div class="message-bubble">${escapeHtml(message.message)}</div>
+                </div>
+            `;
+
+            return item;
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message) {
+                return;
+            }
+
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = '发送中...';
+
+            try {
+                const res = await fetch('/api/chat/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        message_type: 'text'
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    input.value = '';
+                    // 立即添加新消息到列表
+                    if (data.data) {
+                        appendMessages([data.data]);
+                        lastMessageId = data.data.id;
+                    }
+                } else {
+                    showError(data.error || '发送失败');
+                }
+            } catch (err) {
+                console.error('发送消息失败:', err);
+                showError('发送失败，请稍后重试');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = '发送';
+                input.focus();
+            }
+        }
+
+        // 处理回车键发送
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // 滚动到底部
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // 更新在线人数
+        async function updateOnlineCount() {
+            try {
+                const res = await fetch('/api/chat/online');
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('onlineCount').textContent = data.onlineCount;
+                }
+            } catch (err) {
+                console.error('更新在线人数失败:', err);
+            }
+        }
+
+        // 工具函数
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+
+            // 今天
+            if (diff < 24 * 60 * 60 * 1000 && date.toDateString() === now.toDateString()) {
+                return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            }
+            // 昨天
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (date.toDateString() === yesterday.toDateString()) {
+                return '昨天 ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            }
+            // 更早
+            return date.toLocaleString('zh-CN', { 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+    </script>
+</body>
+</html>
+

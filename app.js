@@ -10,6 +10,7 @@ const testRoutes = require('./api/test');
 const toolsRoutes = require('./api/tools');
 const bookmarksRoutes = require('./api/bookmarks');
 const diariesRoutes = require('./api/diaries');
+const chatRoutes = require('./api/chat');
 
 const app = express();
 const port = 3000;
@@ -88,6 +89,7 @@ app.use('/api', testRoutes);      // 测试相关：/api/personality-test, /api/
 app.use('/api', toolsRoutes);     // 工具类：/api/crawl, /api/ai-chat, /api/identify-product, /api/search-prices
 app.use('/api', bookmarksRoutes); // 网址导航：/api/bookmarks
 app.use('/api', diariesRoutes);    // 日记：/api/diaries
+app.use('/api', chatRoutes);       // 聊天室：/api/chat/messages
 app.use('/', userRoutes);         // 用户管理：/users, /users/search, /seed-users
 
 app.listen(port, () => {
