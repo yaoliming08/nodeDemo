@@ -239,6 +239,92 @@
         .back-btn {
             margin-bottom: 20px;
         }
+
+        /* 连连看游戏样式 */
+        #linkGame {
+            text-align: center;
+        }
+
+        .link-game-area {
+            display: grid;
+            gap: 5px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .link-cell {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            aspect-ratio: 1;
+            user-select: none;
+        }
+
+        .link-cell:hover:not(.empty):not(.selected) {
+            transform: scale(1.05);
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .link-cell.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .link-cell.empty {
+            background: transparent;
+            border-color: transparent;
+            cursor: default;
+        }
+
+        .link-cell.matched {
+            animation: match 0.5s ease-out;
+        }
+
+        @keyframes match {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.3);
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        .link-path {
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .link-path-line {
+            stroke: #667eea;
+            stroke-width: 3;
+            fill: none;
+            stroke-dasharray: 5,5;
+            animation: dash 0.5s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -10;
+            }
+        }
     </style>
 </head>
 <body>
@@ -260,7 +346,58 @@
                     </div>
                 </div>
 
+                <div class="game-card" onclick="startGame('link')">
+                    <div class="game-icon">🔗</div>
+                    <div class="game-title">连连看</div>
+                    <div class="game-description">
+                        点击两个相同的图案进行消除，它们之间需要可以连接。
+                        挑战你的观察力和反应速度！
+                    </div>
+                </div>
+
                 <!-- 可以在这里添加更多游戏卡片 -->
+            </div>
+        </div>
+
+        <!-- 连连看游戏 -->
+        <div id="linkGame" class="game-container">
+            <button class="btn btn-secondary back-btn" onclick="backToGames()">← 返回游戏列表</button>
+            
+            <div class="game-header">
+                <h2>🔗 连连看</h2>
+                <div class="game-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">得分</div>
+                        <div class="stat-value" id="linkScore">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">已消除</div>
+                        <div class="stat-value" id="linkMatched">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">剩余</div>
+                        <div class="stat-value" id="linkRemaining">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">时间</div>
+                        <div class="stat-value" id="linkTimer">300</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="difficulty-selector" id="linkDifficultySelector">
+                <button class="difficulty-btn active" data-difficulty="easy" onclick="setLinkDifficulty('easy')">简单 (6x6)</button>
+                <button class="difficulty-btn" data-difficulty="medium" onclick="setLinkDifficulty('medium')">中等 (8x8)</button>
+                <button class="difficulty-btn" data-difficulty="hard" onclick="setLinkDifficulty('hard')">困难 (10x10)</button>
+            </div>
+
+            <div class="link-game-area" id="linkGameArea"></div>
+
+            <div class="game-controls">
+                <button class="btn" onclick="startLinkGame()">开始游戏</button>
+                <button class="btn btn-secondary" onclick="pauseLinkGame()" id="linkPauseBtn">暂停</button>
+                <button class="btn btn-secondary" onclick="resetLinkGame()">重新开始</button>
+                <button class="btn btn-secondary" onclick="hintLinkGame()" id="hintBtn">提示</button>
             </div>
         </div>
 
@@ -345,6 +482,9 @@
             if (gameType === 'bubble') {
                 document.getElementById('bubbleGame').classList.add('active');
                 startBubbleGame();
+            } else if (gameType === 'link') {
+                document.getElementById('linkGame').classList.add('active');
+                initLinkGame();
             }
         }
 
@@ -355,6 +495,7 @@
                 container.classList.remove('active');
             });
             resetGame();
+            resetLinkGame();
         }
 
         // 设置难度
@@ -547,6 +688,385 @@
             if (score >= 500) return '👍 很棒！继续加油！';
             if (score >= 200) return '😊 不错的表现！';
             return '💪 继续努力，你会更好的！';
+        }
+
+        // ========== 连连看游戏逻辑 ==========
+        let linkGameData = {
+            grid: [],
+            rows: 6,
+            cols: 6,
+            selected: null,
+            score: 0,
+            matched: 0,
+            remaining: 0,
+            timeLeft: 300,
+            isActive: false,
+            isPaused: false,
+            timerInterval: null,
+            difficulty: 'easy'
+        };
+
+        const linkDifficultyConfig = {
+            easy: { rows: 6, cols: 6, time: 300 },
+            medium: { rows: 8, cols: 8, time: 400 },
+            hard: { rows: 10, cols: 10, time: 500 }
+        };
+
+        const linkIcons = ['🍎', '🍌', '🍇', '🍊', '🍓', '🍑', '🥝', '🍉', '🍒', '🥭', '🍍', '🥥', '🍋', '🍐', '🍈', '🥑'];
+
+        // 初始化连连看游戏
+        function initLinkGame() {
+            const config = linkDifficultyConfig[linkGameData.difficulty];
+            linkGameData.rows = config.rows;
+            linkGameData.cols = config.cols;
+            linkGameData.timeLeft = config.time;
+            linkGameData.score = 0;
+            linkGameData.matched = 0;
+            linkGameData.selected = null;
+            linkGameData.isActive = false;
+            linkGameData.isPaused = false;
+            
+            updateLinkStats();
+            generateLinkGrid();
+            renderLinkGrid();
+        }
+
+        // 生成网格
+        function generateLinkGrid() {
+            const totalCells = linkGameData.rows * linkGameData.cols;
+            const pairs = totalCells / 2;
+            const icons = linkIcons.slice(0, pairs);
+            
+            // 创建图案数组（每个图案出现两次）
+            const patterns = [];
+            icons.forEach(icon => {
+                patterns.push(icon);
+                patterns.push(icon);
+            });
+            
+            // 打乱数组
+            for (let i = patterns.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [patterns[i], patterns[j]] = [patterns[j], patterns[i]];
+            }
+            
+            // 填充网格
+            linkGameData.grid = [];
+            let index = 0;
+            for (let row = 0; row < linkGameData.rows; row++) {
+                linkGameData.grid[row] = [];
+                for (let col = 0; col < linkGameData.cols; col++) {
+                    linkGameData.grid[row][col] = {
+                        icon: patterns[index] || null,
+                        isEmpty: !patterns[index],
+                        row: row,
+                        col: col
+                    };
+                    index++;
+                }
+            }
+            
+            linkGameData.remaining = totalCells;
+        }
+
+        // 渲染网格
+        function renderLinkGrid() {
+            const gameArea = document.getElementById('linkGameArea');
+            gameArea.style.gridTemplateColumns = `repeat(${linkGameData.cols}, 1fr)`;
+            gameArea.innerHTML = '';
+            
+            for (let row = 0; row < linkGameData.rows; row++) {
+                for (let col = 0; col < linkGameData.cols; col++) {
+                    const cell = document.createElement('div');
+                    const cellData = linkGameData.grid[row][col];
+                    
+                    cell.className = 'link-cell';
+                    if (cellData.isEmpty) {
+                        cell.classList.add('empty');
+                    } else {
+                        cell.textContent = cellData.icon;
+                        cell.setAttribute('data-row', row);
+                        cell.setAttribute('data-col', col);
+                        cell.addEventListener('click', () => handleLinkCellClick(row, col));
+                    }
+                    
+                    gameArea.appendChild(cell);
+                }
+            }
+        }
+
+        // 处理单元格点击
+        function handleLinkCellClick(row, col) {
+            if (!linkGameData.isActive || linkGameData.isPaused) return;
+            
+            const cellData = linkGameData.grid[row][col];
+            if (cellData.isEmpty) return;
+            
+            // 如果已经选中了这个单元格，取消选择
+            if (linkGameData.selected && 
+                linkGameData.selected.row === row && 
+                linkGameData.selected.col === col) {
+                clearLinkSelection();
+                return;
+            }
+            
+            // 如果已经选中了一个单元格
+            if (linkGameData.selected) {
+                const selected = linkGameData.selected;
+                
+                // 检查是否是相同的图案
+                if (cellData.icon === selected.icon) {
+                    // 检查是否可以连接
+                    if (canLink(selected.row, selected.col, row, col)) {
+                        // 消除这两个单元格
+                        matchCells(selected.row, selected.col, row, col);
+                    } else {
+                        // 无法连接，取消选择
+                        clearLinkSelection();
+                        selectLinkCell(row, col);
+                    }
+                } else {
+                    // 图案不同，重新选择
+                    clearLinkSelection();
+                    selectLinkCell(row, col);
+                }
+            } else {
+                // 选择第一个单元格
+                selectLinkCell(row, col);
+            }
+        }
+
+        // 选择单元格
+        function selectLinkCell(row, col) {
+            linkGameData.selected = { row, col, icon: linkGameData.grid[row][col].icon };
+            updateLinkCellStyle(row, col, true);
+        }
+
+        // 清除选择
+        function clearLinkSelection() {
+            if (linkGameData.selected) {
+                updateLinkCellStyle(linkGameData.selected.row, linkGameData.selected.col, false);
+                linkGameData.selected = null;
+            }
+        }
+
+        // 更新单元格样式
+        function updateLinkCellStyle(row, col, selected) {
+            const cells = document.querySelectorAll('.link-cell');
+            const index = row * linkGameData.cols + col;
+            if (cells[index]) {
+                if (selected) {
+                    cells[index].classList.add('selected');
+                } else {
+                    cells[index].classList.remove('selected');
+                }
+            }
+        }
+
+        // 检查两个单元格是否可以连接（简化版：只检查直线和一次转弯）
+        function canLink(row1, col1, row2, col2) {
+            // 如果两个单元格相同，返回false
+            if (row1 === row2 && col1 === col2) return false;
+            
+            // 检查直线连接
+            if (row1 === row2) {
+                // 同一行
+                if (isHorizontalPathClear(row1, col1, col2)) return true;
+            }
+            if (col1 === col2) {
+                // 同一列
+                if (isVerticalPathClear(col1, row1, row2)) return true;
+            }
+            
+            // 检查一次转弯连接
+            // 路径1: 先水平后垂直
+            if (isHorizontalPathClear(row1, col1, col2) && 
+                isVerticalPathClear(col2, row1, row2) && 
+                linkGameData.grid[row1][col2].isEmpty) {
+                return true;
+            }
+            
+            // 路径2: 先垂直后水平
+            if (isVerticalPathClear(col1, row1, row2) && 
+                isHorizontalPathClear(row2, col1, col2) && 
+                linkGameData.grid[row2][col1].isEmpty) {
+                return true;
+            }
+            
+            return false;
+        }
+
+        // 检查水平路径是否畅通
+        function isHorizontalPathClear(row, col1, col2) {
+            const start = Math.min(col1, col2);
+            const end = Math.max(col1, col2);
+            for (let col = start + 1; col < end; col++) {
+                if (!linkGameData.grid[row][col].isEmpty) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // 检查垂直路径是否畅通
+        function isVerticalPathClear(col, row1, row2) {
+            const start = Math.min(row1, row2);
+            const end = Math.max(row1, row2);
+            for (let row = start + 1; row < end; row++) {
+                if (!linkGameData.grid[row][col].isEmpty) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // 消除单元格
+        function matchCells(row1, col1, row2, col2) {
+            // 添加匹配动画
+            const cells = document.querySelectorAll('.link-cell');
+            const index1 = row1 * linkGameData.cols + col1;
+            const index2 = row2 * linkGameData.cols + col2;
+            
+            if (cells[index1]) cells[index1].classList.add('matched');
+            if (cells[index2]) cells[index2].classList.add('matched');
+            
+            // 更新数据
+            setTimeout(() => {
+                linkGameData.grid[row1][col1].isEmpty = true;
+                linkGameData.grid[row1][col1].icon = null;
+                linkGameData.grid[row2][col2].isEmpty = true;
+                linkGameData.grid[row2][col2].icon = null;
+                
+                linkGameData.matched += 2;
+                linkGameData.remaining -= 2;
+                linkGameData.score += 10;
+                
+                updateLinkStats();
+                clearLinkSelection();
+                renderLinkGrid();
+                
+                // 检查是否获胜
+                if (linkGameData.remaining === 0) {
+                    endLinkGame(true);
+                }
+            }, 500);
+        }
+
+        // 开始连连看游戏
+        function startLinkGame() {
+            if (linkGameData.isActive && !linkGameData.isPaused) return;
+            
+            linkGameData.isActive = true;
+            linkGameData.isPaused = false;
+            document.getElementById('linkPauseBtn').textContent = '暂停';
+            
+            // 开始倒计时
+            linkGameData.timerInterval = setInterval(() => {
+                if (!linkGameData.isPaused) {
+                    linkGameData.timeLeft--;
+                    document.getElementById('linkTimer').textContent = linkGameData.timeLeft;
+                    
+                    if (linkGameData.timeLeft <= 0) {
+                        endLinkGame(false);
+                    }
+                }
+            }, 1000);
+        }
+
+        // 暂停游戏
+        function pauseLinkGame() {
+            if (!linkGameData.isActive) return;
+            linkGameData.isPaused = !linkGameData.isPaused;
+            document.getElementById('linkPauseBtn').textContent = linkGameData.isPaused ? '继续' : '暂停';
+        }
+
+        // 重置游戏
+        function resetLinkGame() {
+            linkGameData.isActive = false;
+            linkGameData.isPaused = false;
+            
+            if (linkGameData.timerInterval) {
+                clearInterval(linkGameData.timerInterval);
+                linkGameData.timerInterval = null;
+            }
+            
+            initLinkGame();
+        }
+
+        // 设置难度
+        function setLinkDifficulty(level) {
+            linkGameData.difficulty = level;
+            document.querySelectorAll('#linkDifficultySelector .difficulty-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`#linkDifficultySelector [data-difficulty="${level}"]`).classList.add('active');
+            
+            if (linkGameData.isActive) {
+                resetLinkGame();
+            } else {
+                initLinkGame();
+            }
+        }
+
+        // 提示功能（高亮一对可以连接的图案）
+        function hintLinkGame() {
+            if (!linkGameData.isActive || linkGameData.isPaused) return;
+            
+            // 查找一对可以连接的图案
+            for (let row1 = 0; row1 < linkGameData.rows; row1++) {
+                for (let col1 = 0; col1 < linkGameData.cols; col1++) {
+                    const cell1 = linkGameData.grid[row1][col1];
+                    if (cell1.isEmpty) continue;
+                    
+                    for (let row2 = 0; row2 < linkGameData.rows; row2++) {
+                        for (let col2 = 0; col2 < linkGameData.cols; col2++) {
+                            const cell2 = linkGameData.grid[row2][col2];
+                            if (cell2.isEmpty) continue;
+                            if (row1 === row2 && col1 === col2) continue;
+                            
+                            if (cell1.icon === cell2.icon && canLink(row1, col1, row2, col2)) {
+                                // 高亮提示
+                                clearLinkSelection();
+                                selectLinkCell(row1, col1);
+                                setTimeout(() => {
+                                    selectLinkCell(row2, col2);
+                                    setTimeout(() => {
+                                        clearLinkSelection();
+                                    }, 1000);
+                                }, 500);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 更新统计信息
+        function updateLinkStats() {
+            document.getElementById('linkScore').textContent = linkGameData.score;
+            document.getElementById('linkMatched').textContent = linkGameData.matched;
+            document.getElementById('linkRemaining').textContent = linkGameData.remaining;
+            document.getElementById('linkTimer').textContent = linkGameData.timeLeft;
+        }
+
+        // 结束游戏
+        function endLinkGame(won) {
+            linkGameData.isActive = false;
+            linkGameData.isPaused = false;
+            
+            if (linkGameData.timerInterval) {
+                clearInterval(linkGameData.timerInterval);
+                linkGameData.timerInterval = null;
+            }
+            
+            setTimeout(() => {
+                if (won) {
+                    alert(`🎉 恭喜通关！\n\n得分：${linkGameData.score}\n用时：${linkDifficultyConfig[linkGameData.difficulty].time - linkGameData.timeLeft}秒\n\n太厉害了！`);
+                } else {
+                    alert(`⏰ 时间到！\n\n得分：${linkGameData.score}\n已消除：${linkGameData.matched}个\n剩余：${linkGameData.remaining}个\n\n继续加油！`);
+                }
+            }, 500);
         }
     </script>
 </body>
