@@ -23,7 +23,7 @@ router.post('/login', async (req, res) => {
     const user = rows[0];
     
     // 设置会话
-    req.session.userId = user.id;
+    req.session.userId = user.user_id;
     req.session.username = user.username;
     req.session.isAuthenticated = true;
 
@@ -31,7 +31,7 @@ router.post('/login', async (req, res) => {
       success: true,
       message: '登录成功',
       user: {
-        id: user.id,
+        id: user.user_id,
         username: user.username,
         gender: user.gender,
         age: user.age
