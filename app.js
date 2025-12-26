@@ -5,6 +5,8 @@ const path = require('path');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const multer = require('multer');
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const port = 3000;
@@ -22,6 +24,69 @@ const dbConfig = {
 const pool = mysql.createPool(dbConfig);
 
 app.use(express.json());
+app.use(cookieParser());
+
+// 配置会话管理
+app.use(session({
+  secret: 'your-secret-key-change-this-in-production', // 生产环境请修改为随机字符串
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // 如果使用 HTTPS，设置为 true
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24小时
+  }
+}));
+
+// 路由保护中间件 - 检查用户是否已登录
+function requireAuth(req, res, next) {
+  if (req.session && req.session.isAuthenticated) {
+    return next();
+  } else {
+    // 如果是 API 请求，返回 JSON 错误
+    if (req.path.startsWith('/api/')) {
+      return res.status(401).json({ error: '未登录，请先登录' });
+    }
+    // 如果是页面请求，重定向到登录页
+    return res.redirect('/login.html');
+  }
+}
+
+// 保护需要登录的页面（在静态文件服务之前）
+app.use((req, res, next) => {
+  // 排除静态资源文件（CSS、JS、图片等）
+  const staticExtensions = ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.json'];
+  const isStaticFile = staticExtensions.some(ext => req.path.toLowerCase().endsWith(ext));
+  
+  if (isStaticFile) {
+    return next();
+  }
+  
+  // 排除登录页、注册页和 API 中的登录相关接口
+  if (req.path === '/login.html' || 
+      req.path === '/register.html' ||
+      req.path.startsWith('/api/login') || 
+      req.path.startsWith('/api/register') ||
+      req.path.startsWith('/api/check-auth')) {
+    return next();
+  }
+  
+  // 保护 HTML 页面和根路径
+  if (req.path.endsWith('.html') || req.path === '/' || req.path === '/index.html') {
+    return requireAuth(req, res, next);
+  }
+  
+  // API 路由需要单独保护（除了登录和注册相关）
+  if (req.path.startsWith('/api/') && 
+      !req.path.startsWith('/api/login') && 
+      !req.path.startsWith('/api/register') &&
+      !req.path.startsWith('/api/check-auth')) {
+    return requireAuth(req, res, next);
+  }
+  
+  next();
+});
+
 // 允许访问静态文件（HTML页面）
 app.use(express.static('public'));
 
@@ -61,6 +126,150 @@ function createRandomUser(index) {
 }
 
 // 根路径由静态文件服务自动返回 public/index.html
+
+// ==================== 登录相关 API ====================
+
+// 登录接口
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: '请提供用户名和密码' });
+  }
+
+  try {
+    // 查询用户
+    const sql = 'SELECT * FROM `user` WHERE `username` = ? AND `password` = ?';
+    const [rows] = await pool.query(sql, [username, password]);
+
+    if (rows.length === 0) {
+      return res.status(401).json({ error: '用户名或密码错误' });
+    }
+
+    const user = rows[0];
+    
+    // 设置会话
+    req.session.userId = user.id;
+    req.session.username = user.username;
+    req.session.isAuthenticated = true;
+
+    res.json({
+      success: true,
+      message: '登录成功',
+      user: {
+        id: user.id,
+        username: user.username,
+        gender: user.gender,
+        age: user.age
+      }
+    });
+  } catch (err) {
+    console.error('登录错误:', err);
+    res.status(500).json({ error: '登录失败', detail: err.message });
+  }
+});
+
+// 检查登录状态
+app.get('/api/check-auth', (req, res) => {
+  if (req.session && req.session.isAuthenticated) {
+    res.json({
+      isAuthenticated: true,
+      user: {
+        id: req.session.userId,
+        username: req.session.username
+      }
+    });
+  } else {
+    res.json({
+      isAuthenticated: false
+    });
+  }
+});
+
+// 注册接口
+app.post('/api/register', async (req, res) => {
+  const { username, password, gender, age, phone, id_card } = req.body;
+
+  // 验证必填字段
+  if (!username || !password || !gender || !age || !phone || !id_card) {
+    return res.status(400).json({ error: '请填写所有必填字段' });
+  }
+
+  // 验证密码长度
+  if (password.length < 6) {
+    return res.status(400).json({ error: '密码长度至少为6位' });
+  }
+
+  // 验证年龄范围
+  if (age < 1 || age > 120) {
+    return res.status(400).json({ error: '请输入有效的年龄（1-120）' });
+  }
+
+  // 验证手机号格式
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    return res.status(400).json({ error: '请输入正确的手机号格式' });
+  }
+
+  try {
+    // 检查用户名是否已存在
+    const checkSql = 'SELECT * FROM `user` WHERE `username` = ?';
+    const [existingUsers] = await pool.query(checkSql, [username]);
+
+    if (existingUsers.length > 0) {
+      return res.status(400).json({ error: '用户名已存在，请选择其他用户名' });
+    }
+
+    // 检查手机号是否已存在
+    const checkPhoneSql = 'SELECT * FROM `user` WHERE `phone` = ?';
+    const [existingPhones] = await pool.query(checkPhoneSql, [phone]);
+
+    if (existingPhones.length > 0) {
+      return res.status(400).json({ error: '该手机号已被注册' });
+    }
+
+    // 插入新用户
+    const sql = 'INSERT INTO `user` (`username`, `password`, `gender`, `age`, `phone`, `id_card`) VALUES (?, ?, ?, ?, ?, ?)';
+    const [result] = await pool.execute(sql, [username, password, gender, age, phone, id_card]);
+
+    res.json({
+      success: true,
+      message: '注册成功',
+      user: {
+        id: result.insertId,
+        username,
+        gender,
+        age,
+        phone
+      }
+    });
+  } catch (err) {
+    console.error('注册错误:', err);
+    
+    // 处理数据库唯一约束错误
+    if (err.code === 'ER_DUP_ENTRY') {
+      if (err.message.includes('username')) {
+        return res.status(400).json({ error: '用户名已存在，请选择其他用户名' });
+      } else if (err.message.includes('phone')) {
+        return res.status(400).json({ error: '该手机号已被注册' });
+      }
+    }
+    
+    res.status(500).json({ error: '注册失败', detail: err.message });
+  }
+});
+
+// 登出接口
+app.post('/api/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('登出错误:', err);
+      return res.status(500).json({ error: '登出失败' });
+    }
+    res.json({ success: true, message: '已成功登出' });
+  });
+});
+
+// ==================== 用户管理 API ====================
 
 // 查询 xl.user 表中所有数据
 app.get('/users', async (req, res) => {

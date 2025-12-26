@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户注册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .register-container {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .register-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .register-header h1 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .register-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group label .required {
+            color: #e74c3c;
+            margin-left: 4px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .register-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .register-btn:active {
+            transform: translateY(0);
+        }
+
+        .register-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            border: 1px solid #fcc;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            border: 1px solid #cfc;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 30px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .footer-text a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-text a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-header">
+            <h1>📝 用户注册</h1>
+            <p>请填写以下信息完成注册</p>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="username">用户名<span class="required">*</span></label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    placeholder="请输入用户名" 
+                    required 
+                    autocomplete="username"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">密码<span class="required">*</span></label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="请输入密码" 
+                    required 
+                    autocomplete="new-password"
+                    minlength="6"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">确认密码<span class="required">*</span></label>
+                <input 
+                    type="password" 
+                    id="confirmPassword" 
+                    name="confirmPassword" 
+                    placeholder="请再次输入密码" 
+                    required 
+                    autocomplete="new-password"
+                >
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="gender">性别<span class="required">*</span></label>
+                    <select id="gender" name="gender" required>
+                        <option value="">请选择</option>
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="age">年龄<span class="required">*</span></label>
+                    <input 
+                        type="number" 
+                        id="age" 
+                        name="age" 
+                        placeholder="请输入年龄" 
+                        required 
+                        min="1" 
+                        max="120"
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">手机号<span class="required">*</span></label>
+                <input 
+                    type="tel" 
+                    id="phone" 
+                    name="phone" 
+                    placeholder="请输入手机号" 
+                    required 
+                    pattern="[0-9]{11}"
+                    maxlength="11"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="id_card">身份证号<span class="required">*</span></label>
+                <input 
+                    type="text" 
+                    id="id_card" 
+                    name="id_card" 
+                    placeholder="请输入身份证号" 
+                    required 
+                    maxlength="18"
+                >
+            </div>
+
+            <button type="submit" class="register-btn" id="registerBtn">
+                <span id="registerBtnText">注册</span>
+            </button>
+        </form>
+
+        <div class="footer-text">
+            已有账号？<a href="/login.html">立即登录</a>
+        </div>
+    </div>
+
+    <script>
+        const registerForm = document.getElementById('registerForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const registerBtn = document.getElementById('registerBtn');
+        const registerBtnText = document.getElementById('registerBtnText');
+
+        // 检查是否已经登录
+        fetch('/api/check-auth')
+            .then(res => res.json())
+            .then(data => {
+                if (data.isAuthenticated) {
+                    window.location.href = '/index.html';
+                }
+            })
+            .catch(err => {
+                console.error('检查登录状态失败:', err);
+            });
+
+        // 密码确认验证
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        
+        confirmPassword.addEventListener('blur', () => {
+            if (password.value !== confirmPassword.value) {
+                confirmPassword.setCustomValidity('两次输入的密码不一致');
+            } else {
+                confirmPassword.setCustomValidity('');
+            }
+        });
+
+        password.addEventListener('input', () => {
+            if (confirmPassword.value && password.value !== confirmPassword.value) {
+                confirmPassword.setCustomValidity('两次输入的密码不一致');
+            } else {
+                confirmPassword.setCustomValidity('');
+            }
+        });
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const passwordValue = password.value;
+            const confirmPasswordValue = confirmPassword.value;
+            const gender = document.getElementById('gender').value;
+            const age = parseInt(document.getElementById('age').value);
+            const phone = document.getElementById('phone').value.trim();
+            const id_card = document.getElementById('id_card').value.trim();
+
+            // 验证必填字段
+            if (!username || !passwordValue || !gender || !age || !phone || !id_card) {
+                showError('请填写所有必填字段');
+                return;
+            }
+
+            // 验证密码长度
+            if (passwordValue.length < 6) {
+                showError('密码长度至少为6位');
+                return;
+            }
+
+            // 验证密码确认
+            if (passwordValue !== confirmPasswordValue) {
+                showError('两次输入的密码不一致');
+                return;
+            }
+
+            // 验证手机号格式
+            if (!/^1[3-9]\d{9}$/.test(phone)) {
+                showError('请输入正确的手机号格式');
+                return;
+            }
+
+            // 验证年龄范围
+            if (age < 1 || age > 120) {
+                showError('请输入有效的年龄（1-120）');
+                return;
+            }
+
+            // 显示加载状态
+            registerBtn.disabled = true;
+            registerBtnText.innerHTML = '<span class="loading"></span>注册中...';
+            errorMessage.classList.remove('show');
+            successMessage.classList.remove('show');
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password: passwordValue,
+                        gender,
+                        age,
+                        phone,
+                        id_card
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // 注册成功
+                    showSuccess('注册成功！正在跳转到登录页面...');
+                    registerBtn.disabled = false;
+                    registerBtnText.textContent = '注册';
+                    
+                    // 2秒后跳转到登录页
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
+                } else {
+                    // 注册失败，显示错误信息
+                    showError(data.error || '注册失败，请稍后重试');
+                    registerBtn.disabled = false;
+                    registerBtnText.textContent = '注册';
+                }
+            } catch (error) {
+                console.error('注册错误:', error);
+                showError('网络错误，请稍后重试');
+                registerBtn.disabled = false;
+                registerBtnText.textContent = '注册';
+            }
+        });
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+            successMessage.classList.remove('show');
+            
+            // 5秒后自动隐藏错误信息
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.classList.add('show');
+            errorMessage.classList.remove('show');
+        }
+    </script>
+</body>
+</html>
+

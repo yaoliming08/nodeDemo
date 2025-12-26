@@ -118,6 +118,10 @@
         <div class="header">
             <h1>🚀 项目功能导航</h1>
             <p>选择下方功能卡片，开始使用各项服务</p>
+            <div style="margin-top: 20px;">
+                <span id="userInfo" style="font-size: 16px; margin-right: 20px;"></span>
+                <button id="logoutBtn" style="display: none; padding: 8px 20px; background: rgba(255,255,255,0.2); border: 2px solid white; border-radius: 20px; color: white; cursor: pointer; font-size: 14px;">登出</button>
+            </div>
         </div>
 
         <div class="features-grid">
@@ -192,5 +196,45 @@
             </a>
         </div>
     </div>
+
+    <script>
+        // 检查登录状态
+        fetch('/api/check-auth')
+            .then(res => res.json())
+            .then(data => {
+                if (!data.isAuthenticated) {
+                    // 未登录，跳转到登录页
+                    window.location.href = '/login.html';
+                } else {
+                    // 已登录，显示用户信息
+                    const userInfo = document.getElementById('userInfo');
+                    const logoutBtn = document.getElementById('logoutBtn');
+                    userInfo.textContent = `欢迎，${data.user.username}`;
+                    logoutBtn.style.display = 'inline-block';
+                }
+            })
+            .catch(err => {
+                console.error('检查登录状态失败:', err);
+                // 出错时也跳转到登录页
+                window.location.href = '/login.html';
+            });
+
+        // 登出功能
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/logout', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error('登出失败:', error);
+                // 即使出错也跳转到登录页
+                window.location.href = '/login.html';
+            }
+        });
+    </script>
 </body>
 </html>
