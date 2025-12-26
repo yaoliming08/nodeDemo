@@ -108,3 +108,4 @@ async function searchPricesFromPlatforms(keywords) {
 4. 支持多商品对比
 5. 添加价格提醒功能
 
+
