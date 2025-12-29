@@ -26,3 +26,4 @@ CREATE TABLE IF NOT EXISTS `chat_messages` (
 -- ON DELETE CASCADE: 当用户被删除时，该用户发送的所有消息也会被自动删除
 -- ON UPDATE CASCADE: 当用户user_id更新时，消息的user_id也会自动更新
 
+

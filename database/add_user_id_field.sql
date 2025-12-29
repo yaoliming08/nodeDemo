@@ -14,3 +14,4 @@ ADD PRIMARY KEY (`user_id`);
 -- 为现有数据生成user_id（如果字段已存在但数据为空）
 -- UPDATE `user` SET `user_id` = `user` WHERE `user_id` IS NULL OR `user_id` = 0;
 
+

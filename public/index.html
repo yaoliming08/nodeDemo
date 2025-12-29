@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -40,61 +40,129 @@
             opacity: 0.9;
         }
 
-        .features-grid {
+        .categories-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
             margin-top: 40px;
         }
 
-        .feature-card {
+        .category-card {
             background: white;
             border-radius: 20px;
-            padding: 35px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
             transition: all 0.3s ease;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-            display: block;
         }
 
-        .feature-card:hover {
-            transform: translateY(-10px);
+        .category-card:hover {
+            transform: translateY(-5px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
-        .feature-icon {
-            font-size: 60px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .feature-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .feature-description {
-            font-size: 16px;
-            color: #666;
-            line-height: 1.6;
-            text-align: center;
-        }
-
-        .feature-badge {
-            display: inline-block;
+        .category-header {
+            padding: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            margin-top: 15px;
-            text-align: center;
-            width: 100%;
+        }
+
+        .category-header.expanded {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .category-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .category-icon {
+            font-size: 50px;
+        }
+
+        .category-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .category-count {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .category-toggle {
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .category-card.expanded .category-toggle {
+            transform: rotate(180deg);
+        }
+
+        .category-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .category-card.expanded .category-content {
+            max-height: 2000px;
+        }
+
+        .features-list {
+            padding: 20px 30px 30px;
+        }
+
+        .feature-item {
+            display: block;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .feature-item:hover {
+            background: #e9ecef;
+            border-left-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .feature-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .feature-item-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .feature-item-icon {
+            font-size: 32px;
+        }
+
+        .feature-item-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+        }
+
+        .feature-item-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+            margin-left: 47px;
         }
 
         @media (max-width: 768px) {
@@ -106,9 +174,21 @@
                 font-size: 16px;
             }
 
-            .features-grid {
+            .categories-grid {
                 grid-template-columns: 1fr;
                 gap: 20px;
+            }
+
+            .category-header {
+                padding: 20px;
+            }
+
+            .category-icon {
+                font-size: 40px;
+            }
+
+            .category-title {
+                font-size: 20px;
             }
         }
     </style>
@@ -117,133 +197,169 @@
     <div class="container">
         <div class="header">
             <h1>🚀 项目功能导航</h1>
-            <p>选择下方功能卡片，开始使用各项服务</p>
+            <p>点击分类卡片展开查看功能列表</p>
             <div style="margin-top: 20px;">
                 <span id="userInfo" style="font-size: 16px; margin-right: 20px;"></span>
                 <button id="logoutBtn" style="display: none; padding: 8px 20px; background: rgba(255,255,255,0.2); border: 2px solid white; border-radius: 20px; color: white; cursor: pointer; font-size: 14px;">登出</button>
             </div>
         </div>
 
-        <div class="features-grid">
-            <a href="user-search.html" class="feature-card">
-                <div class="feature-icon">🔍</div>
-                <div class="feature-title">用户查询系统</div>
-                <div class="feature-description">
-                    通过用户名快速查询用户信息，支持模糊搜索功能。
-                    可以查看用户的详细信息，包括用户名、密码、性别、年龄、手机号和身份证等。
+        <div class="categories-grid">
+            <!-- 工具方法集合 -->
+            <div class="category-card" data-category="tools">
+                <div class="category-header">
+                    <div class="category-info">
+                        <div class="category-icon">🛠️</div>
+                        <div>
+                            <div class="category-title">工具方法集合</div>
+                            <div class="category-count">6 个工具</div>
+                        </div>
+                    </div>
+                    <div class="category-toggle">▼</div>
                 </div>
-                <div class="feature-badge">数据库查询</div>
-            </a>
+                <div class="category-content">
+                    <div class="features-list">
+                        <a href="user-search.html" class="feature-item">
+                            <div class="feature-item-header">
+                                <div class="feature-item-icon">🔍</div>
+                                <div class="feature-item-title">用户查询系统</div>
+                            </div>
+                            <div class="feature-item-description">通过用户名快速查询用户信息，支持模糊搜索功能</div>
+                        </a>
+                        <a href="audio.html" class="feature-item">
+                            <div class="feature-item-header">
+                                <div class="feature-item-icon">🎧</div>
+                                <div class="feature-item-title">Base64音频播放器</div>
+                            </div>
+                            <div class="feature-item-description">在线播放Base64编码的音频文件，支持多种音频格式</div>
+                        </a>
+                        <a href="api-crawler.html" class="feature-item">
+                            <div class="feature-item-header">
+                                <div class="feature-item-icon">🕷️</div>
+                                <div class="feature-item-title">接口爬虫工具</div>
+                            </div>
+                            <div class="feature-item-description">自动分析页面中的所有API接口，支持多种API调用方式识别</div>
+                        </a>
+                        <a href="json-formatter.html" class="feature-item">
+                            <div class="feature-item-header">
+                                <div class="feature-item-icon">📋</div>
+                                <div class="feature-item-title">JSON格式化工具</div>
+                            </div>
+                            <div class="feature-item-description">自动格式化和美化JSON数据，支持格式化、压缩、验证功能</div>
+                        </a>
+                        <a href="ai-chat.html" class="feature-item">
+                            <div class="feature-item-header">
+                                <div class="feature-item-icon">🤖</div>
+                                <div class="feature-item-title">AI智能对话</div>
+                            </div>
+                            <div class="feature-item-description">基于豆包AI的智能对话助手，支持多轮对话、上下文理解</div>
+                        </a>
+                        <a href="price-comparison.html" class="feature-item">
+                            <div class="feature-item-header">
+                                <div class="feature-item-icon">🛒</div>
+                                <div class="feature-item-title">商品比价工具</div>
+                            </div>
+                            <div class="feature-item-description">AI识别商品信息，对比拼多多、淘宝、京东三大平台价格</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-            <a href="audio.html" class="feature-card">
-                <div class="feature-icon">🎧</div>
-                <div class="feature-title">Base64音频播放器</div>
-                <div class="feature-description">
-                    在线播放Base64编码的音频文件。
-                    支持多种音频格式，自动加载和播放音频内容，提供友好的用户界面。
+            <!-- 心理学测试 -->
+            <div class="category-card" data-category="psychology">
+                <div class="category-header">
+                    <div class="category-info">
+                        <div class="category-icon">🧠</div>
+                        <div>
+                            <div class="category-title">心理学测试</div>
+                            <div class="category-count">2 个测试</div>
+                        </div>
+                    </div>
+                    <div class="category-toggle">▼</div>
                 </div>
-                <div class="feature-badge">媒体播放</div>
-            </a>
+                <div class="category-content">
+                    <div class="features-list">
+                        <a href="personality-test.html" class="feature-item">
+                            <div class="feature-item-header">
+                                <div class="feature-item-icon">🧠</div>
+                                <div class="feature-item-title">人格测试</div>
+                            </div>
+                            <div class="feature-item-description">基于MBTI理论，通过12道问题了解你的人格特征和性格类型</div>
+                        </a>
+                        <a href="mental-health-test.html" class="feature-item">
+                            <div class="feature-item-header">
+                                <div class="feature-item-icon">🏥</div>
+                                <div class="feature-item-title">心理健康评估</div>
+                            </div>
+                            <div class="feature-item-description">基于权威医学量表进行专业评估，包含抑郁、焦虑、压力等评估</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-            <a href="personality-test.html" class="feature-card">
-                <div class="feature-icon">🧠</div>
-                <div class="feature-title">人格测试</div>
-                <div class="feature-description">
-                    通过回答12道精心设计的问题，了解你的人格特征。
-                    基于MBTI理论，分析你的性格类型，并提供详细的性格描述和评分。
+            <!-- 个人学习 -->
+            <div class="category-card" data-category="personal">
+                <div class="category-header">
+                    <div class="category-info">
+                        <div class="category-icon">📚</div>
+                        <div>
+                            <div class="category-title">个人学习</div>
+                            <div class="category-count">3 个功能</div>
+                        </div>
+                    </div>
+                    <div class="category-toggle">▼</div>
                 </div>
-                <div class="feature-badge">心理测试</div>
-            </a>
+                <div class="category-content">
+                    <div class="features-list">
+                        <a href="bookmarks.html" class="feature-item">
+                            <div class="feature-item-header">
+                                <div class="feature-item-icon">🔖</div>
+                                <div class="feature-item-title">网址导航</div>
+                            </div>
+                            <div class="feature-item-description">个人专属的网址导航页面，支持添加、编辑、删除书签，按分类管理</div>
+                        </a>
+                        <a href="diaries.html" class="feature-item">
+                            <div class="feature-item-header">
+                                <div class="feature-item-icon">📔</div>
+                                <div class="feature-item-title">我的日记本</div>
+                            </div>
+                            <div class="feature-item-description">记录生活的点点滴滴，支持按日期查看和管理，可添加心情、天气、标签</div>
+                        </a>
+                        <a href="chatroom.html" class="feature-item">
+                            <div class="feature-item-header">
+                                <div class="feature-item-icon">💬</div>
+                                <div class="feature-item-title">聊天室</div>
+                            </div>
+                            <div class="feature-item-description">群聊功能，实时刷新，支持多人同时在线聊天，展示在线人数统计</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-            <a href="api-crawler.html" class="feature-card">
-                <div class="feature-icon">🕷️</div>
-                <div class="feature-title">接口爬虫工具</div>
-                <div class="feature-description">
-                    输入任意网址，自动分析页面中的所有API接口。
-                    支持识别fetch、axios、XMLHttpRequest等多种API调用方式，并提取接口URL和请求方法。
+            <!-- 游戏 -->
+            <div class="category-card" data-category="games">
+                <div class="category-header">
+                    <div class="category-info">
+                        <div class="category-icon">🎮</div>
+                        <div>
+                            <div class="category-title">游戏</div>
+                            <div class="category-count">1 个游戏集合</div>
+                        </div>
+                    </div>
+                    <div class="category-toggle">▼</div>
                 </div>
-                <div class="feature-badge">开发工具</div>
-            </a>
-
-            <a href="mental-health-test.html" class="feature-card">
-                <div class="feature-icon">🏥</div>
-                <div class="feature-title">心理健康评估</div>
-                <div class="feature-description">
-                    基于权威医学量表（PHQ-9、GAD-7、MDQ、PSS）进行专业心理健康评估。
-                    包含抑郁、焦虑、双向情感障碍和压力评估，提供科学的评估结果和专业建议。
+                <div class="category-content">
+                    <div class="features-list">
+                        <a href="games.html" class="feature-item">
+                            <div class="feature-item-header">
+                                <div class="feature-item-icon">🎮</div>
+                                <div class="feature-item-title">解压小游戏</div>
+                            </div>
+                            <div class="feature-item-description">多种解压小游戏集合，包含泡泡消除、连连看、俄罗斯方块等趣味游戏</div>
+                        </a>
+                    </div>
                 </div>
-                <div class="feature-badge">健康评估</div>
-            </a>
-
-            <a href="ai-chat.html" class="feature-card">
-                <div class="feature-icon">🤖</div>
-                <div class="feature-title">AI智能对话</div>
-                <div class="feature-description">
-                    基于豆包AI的智能对话助手，支持多轮对话、上下文理解。
-                    可选择不同模型，流畅的对话体验，适用于问答、创作、代码等多种场景。
-                </div>
-                <div class="feature-badge">AI助手</div>
-            </a>
-
-            <a href="price-comparison.html" class="feature-card">
-                <div class="feature-icon">🛒</div>
-                <div class="feature-title">商品比价工具</div>
-                <div class="feature-description">
-                    上传商品图片，AI自动识别商品信息，并对比拼多多、淘宝、京东三大平台的价格。
-                    显示最高价和最低价，帮助您找到最优惠的商品。
-                </div>
-                <div class="feature-badge">比价工具</div>
-            </a>
-
-            <a href="json-formatter.html" class="feature-card">
-                <div class="feature-icon">📋</div>
-                <div class="feature-title">JSON格式化工具</div>
-                <div class="feature-description">
-                    输入JSON数据，自动格式化和美化显示。
-                    支持格式化、压缩、验证和统计功能，方便查看和调试JSON数据结构。
-                </div>
-                <div class="feature-badge">开发工具</div>
-            </a>
-
-            <a href="bookmarks.html" class="feature-card">
-                <div class="feature-icon">🔖</div>
-                <div class="feature-title">网址导航</div>
-                <div class="feature-description">
-                    个人专属的网址导航页面，支持添加、编辑、删除书签。
-                    按分类管理，快速访问常用网站，每个用户都有独立的导航数据。
-                </div>
-                <div class="feature-badge">个人工具</div>
-            </a>
-
-            <a href="diaries.html" class="feature-card">
-                <div class="feature-icon">📔</div>
-                <div class="feature-title">我的日记本</div>
-                <div class="feature-description">
-                    记录生活的点点滴滴，支持按日期查看和管理日记。
-                    可以添加心情、天气、标签等信息，每个用户都有独立的日记本。
-                </div>
-                <div class="feature-badge">个人工具</div>
-            </a>
-
-            <a href="chatroom.html" class="feature-card">
-                <div class="feature-icon">💬</div>
-                <div class="feature-title">聊天室</div>
-                <div class="feature-description">
-                    群聊功能，所有用户都可以在这里发送消息和查看其他用户的消息。
-                    实时刷新，支持多人同时在线聊天，展示在线人数统计。
-                </div>
-                <div class="feature-badge">社交功能</div>
-            </a>
-
-            <a href="games.html" class="feature-card">
-                <div class="feature-icon">🎮</div>
-                <div class="feature-title">解压小游戏</div>
-                <div class="feature-description">
-                    多种解压小游戏，放松心情，释放压力。
-                    包含泡泡消除等趣味游戏，支持多种难度，简单易上手。
-                </div>
-                <div class="feature-badge">娱乐游戏</div>
-            </a>
+            </div>
         </div>
     </div>
 
@@ -285,6 +401,17 @@
                 window.location.href = '/login.html';
             }
         });
+
+        // 分类卡片展开/折叠功能
+        document.querySelectorAll('.category-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const categoryCard = this.closest('.category-card');
+                categoryCard.classList.toggle('expanded');
+            });
+        });
+
+        // 默认展开第一个分类
+        document.querySelector('.category-card').classList.add('expanded');
     </script>
 </body>
 </html>

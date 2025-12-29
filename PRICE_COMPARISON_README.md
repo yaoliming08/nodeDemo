@@ -109,3 +109,4 @@ async function searchPricesFromPlatforms(keywords) {
 5. 添加价格提醒功能
 
 
+

@@ -30,3 +30,4 @@ CREATE TABLE IF NOT EXISTS `diaries` (
 -- ON DELETE CASCADE: 当用户被删除时，该用户的所有日记也会被自动删除
 -- ON UPDATE CASCADE: 当用户user_id更新时，日记的user_id也会自动更新
 
+
