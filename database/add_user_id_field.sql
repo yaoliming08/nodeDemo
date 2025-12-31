@@ -15,3 +15,6 @@ ADD PRIMARY KEY (`user_id`);
 -- UPDATE `user` SET `user_id` = `user` WHERE `user_id` IS NULL OR `user_id` = 0;
 
 
+
+
+

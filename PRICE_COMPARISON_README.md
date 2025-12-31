@@ -110,3 +110,6 @@ async function searchPricesFromPlatforms(keywords) {
 
 
 
+
+
+

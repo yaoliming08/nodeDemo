@@ -27,3 +27,6 @@ CREATE TABLE IF NOT EXISTS `chat_messages` (
 -- ON UPDATE CASCADE: 当用户user_id更新时，消息的user_id也会自动更新
 
 
+
+
+
