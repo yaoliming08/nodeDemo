@@ -483,14 +483,19 @@
                 };
 
                 ws.onmessage = (event) => {
+                    // 在控制台输出原始消息（方便调试）
+                    console.log('收到消息:', event.data);
+                    
                     try {
                         const data = JSON.parse(event.data);
+                        console.log('解析后的数据:', data);
                         messageCount++;
                         lastMessageTime = new Date();
                         updateStats();
                         addDanmuMessage(data, event.data);
                     } catch (err) {
                         // 如果不是JSON，直接显示原始数据
+                        console.log('非JSON消息，显示原始数据');
                         messageCount++;
                         lastMessageTime = new Date();
                         updateStats();
@@ -593,8 +598,34 @@
             const danmuItem = document.createElement('div');
             danmuItem.className = 'danmu-item';
 
-            const username = data.nickname || data.username || data.user || '未知用户';
-            const content = data.content || data.msg || data.message || JSON.stringify(data);
+            // 更全面的用户名提取
+            const username = data.nickname || data.username || data.user || 
+                           data.user_name || data.nick || data.name || 
+                           data.author || data.sender || '未知用户';
+            
+            // 更全面的消息内容提取
+            let content = data.content || data.msg || data.message || 
+                         data.text || data.comment || data.danmu || 
+                         data.data?.content || data.data?.msg || 
+                         data.payload?.content || data.payload?.msg;
+            
+            // 如果还是没有内容，尝试显示整个对象的关键信息
+            if (!content) {
+                // 尝试从嵌套对象中提取
+                if (data.data && typeof data.data === 'object') {
+                    content = JSON.stringify(data.data, null, 2);
+                } else if (data.payload && typeof data.payload === 'object') {
+                    content = JSON.stringify(data.payload, null, 2);
+                } else {
+                    // 最后显示整个对象（排除一些技术字段）
+                    const displayData = { ...data };
+                    delete displayData.timestamp;
+                    delete displayData.time;
+                    delete displayData.id;
+                    content = JSON.stringify(displayData, null, 2);
+                }
+            }
+            
             const type = getMessageType(data);
             const time = new Date().toLocaleTimeString('zh-CN');
 
@@ -604,7 +635,7 @@
                     <span class="danmu-type">${type}</span>
                     <span class="danmu-time">${time}</span>
                 </div>
-                <div class="danmu-content">${escapeHtml(content)}</div>
+                <div class="danmu-content">${escapeHtml(String(content))}</div>
                 ${showRaw ? `<div class="danmu-raw">${escapeHtml(rawData)}</div>` : ''}
             `;
 
@@ -625,21 +656,37 @@
 
         // 获取消息类型
         function getMessageType(data) {
+            // 优先使用明确的类型字段
             if (data.type) {
-                return data.type;
+                return String(data.type);
             }
             if (data.method) {
-                return data.method;
+                return String(data.method);
             }
-            if (data.content || data.msg || data.message) {
+            if (data.event) {
+                return String(data.event);
+            }
+            if (data.action) {
+                return String(data.action);
+            }
+            
+            // 根据内容判断类型
+            if (data.content || data.msg || data.message || data.text || data.comment || data.danmu) {
                 return 'danmu';
             }
-            if (data.gift) {
+            if (data.gift || data.gift_name || data.gift_id) {
                 return 'gift';
             }
-            if (data.like) {
+            if (data.like || data.like_count) {
                 return 'like';
             }
+            if (data.follow || data.followed) {
+                return 'follow';
+            }
+            if (data.enter || data.enter_room) {
+                return 'enter';
+            }
+            
             return 'other';
         }
 
