@@ -76,10 +76,24 @@ router.get('/weight-records', async (req, res) => {
     // 处理照片路径，转换为完整的URL，并格式化数据
     const records = rows.map(record => {
       const photos = record.photos ? JSON.parse(record.photos) : [];
+      
+      // 确保日期格式为 YYYY-MM-DD（使用本地时区，避免UTC转换导致的日期偏移）
+      let recordDate = record.record_date;
+      if (recordDate instanceof Date) {
+        // 使用本地时区格式化，而不是UTC
+        const year = recordDate.getFullYear();
+        const month = String(recordDate.getMonth() + 1).padStart(2, '0');
+        const day = String(recordDate.getDate()).padStart(2, '0');
+        recordDate = `${year}-${month}-${day}`;
+      } else if (typeof recordDate === 'string') {
+        // 如果是字符串，提取日期部分（处理各种格式）
+        recordDate = recordDate.split('T')[0].split(' ')[0];
+      }
+      
       return {
         id: record.id,
         user_id: record.user_id,
-        record_date: record.record_date,
+        record_date: recordDate, // 统一格式为 YYYY-MM-DD
         weight: parseFloat(record.weight),
         initial_weight: parseFloat(record.initial_weight),
         target_weight: parseFloat(record.target_weight),

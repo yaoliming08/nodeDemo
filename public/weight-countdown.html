@@ -775,14 +775,39 @@
         // 从API获取所有记录列表
         async function fetchAllRecords() {
             try {
-                const response = await fetch('/api/weight-records');
+                console.log('📡 正在调用列表接口: /api/weight-records');
+                const response = await fetch('/api/weight-records', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    cache: 'no-cache' // 禁用缓存，确保获取最新数据
+                });
+                
+                console.log('📥 接口响应状态:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const result = await response.json();
+                console.log('📦 接口返回数据:', result);
+                
                 if (result.success && result.data && Array.isArray(result.data)) {
                     // 清空缓存并重新填充
                     weightRecordsCache = {};
                     result.data.forEach(record => {
-                        // 确保日期格式正确
-                        const recordDate = record.record_date;
+                        // 确保日期格式正确（统一为 YYYY-MM-DD）
+                        let recordDate = record.record_date;
+                        if (recordDate) {
+                            // 如果是ISO格式字符串，提取日期部分
+                            if (typeof recordDate === 'string') {
+                                recordDate = recordDate.split('T')[0].split(' ')[0];
+                            } else if (recordDate instanceof Date) {
+                                recordDate = recordDate.toISOString().split('T')[0];
+                            }
+                        }
+                        
                         weightRecordsCache[recordDate] = {
                             id: record.id,
                             user_id: record.user_id,
@@ -800,12 +825,19 @@
                         };
                     });
                     console.log(`✅ 从列表接口加载了 ${result.data.length} 条历史记录`);
+                    console.log('📋 缓存数据:', weightRecordsCache);
+                    console.log('📅 缓存中的日期:', Object.keys(weightRecordsCache));
                     return weightRecordsCache;
                 } else {
                     console.warn('⚠️ 接口返回数据格式不正确:', result);
+                    if (result.data === null || result.data === undefined) {
+                        console.log('ℹ️ 当前没有历史记录数据');
+                        weightRecordsCache = {};
+                    }
                 }
             } catch (err) {
                 console.error('❌ 获取记录列表失败:', err);
+                console.error('错误详情:', err.message);
             }
             return weightRecordsCache;
         }
@@ -823,18 +855,21 @@
 
         // 生成日期列表（从开始日期到今天，不显示未来日期）
         function generateDateList() {
-            const start = new Date(config.startDate);
+            const start = new Date(config.startDate + 'T00:00:00');
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            // 使用本地时区，确保今天被包含
+            today.setHours(23, 59, 59, 999); // 设置为今天的最后一刻，确保包含今天
             
             const dates = [];
             const current = new Date(start);
+            const todayStr = formatDate(new Date()); // 今天的日期字符串（用于比较）
             
-            // 只生成到今天为止的日期
+            // 只生成到今天为止的日期（包含今天）
             while (current <= today) {
                 const dateStr = formatDate(current);
-                const isToday = current.getTime() === today.getTime();
-                const isPast = current < today;
+                const currentDateStr = formatDate(new Date()); // 当前日期字符串
+                const isToday = dateStr === currentDateStr; // 使用字符串比较，避免时区问题
+                const isPast = dateStr < currentDateStr;
                 
                 dates.push({
                     date: dateStr,
@@ -845,8 +880,11 @@
                 });
                 
                 current.setDate(current.getDate() + 1);
+                // 重置时间部分，避免时区问题
+                current.setHours(0, 0, 0, 0);
             }
             
+            console.log(`📅 生成了 ${dates.length} 个日期项，从 ${dates[0]?.date} 到 ${dates[dates.length - 1]?.date}`);
             return dates;
         }
 
@@ -884,8 +922,15 @@
             const emptyList = document.getElementById('emptyDateList');
             const dates = generateDateList();
             
-            // 从API获取所有记录
-            await fetchAllRecords();
+            console.log(`📅 生成了 ${dates.length} 个日期项`);
+            
+            // 确保数据已加载（如果缓存为空，重新加载）
+            if (Object.keys(weightRecordsCache).length === 0) {
+                console.log('⚠️ 缓存为空，重新加载数据...');
+                await fetchAllRecords();
+            }
+            
+            console.log(`📋 当前缓存中有 ${Object.keys(weightRecordsCache).length} 条记录`);
             
             if (dates.length === 0) {
                 emptyList.style.display = 'block';
@@ -899,11 +944,51 @@
                 const dateItem = document.createElement('div');
                 dateItem.className = `date-item ${dateInfo.isToday ? 'today' : ''}`;
                 
-                const record = weightRecordsCache[dateInfo.date] || null;
-                const weight = record ? record.weight : '';
-                const lostWeight = record ? record.lost_weight.toFixed(1) : '';
-                const remainingWeight = record ? record.remaining_weight.toFixed(1) : '';
+                // 查找对应日期的记录（支持多种日期格式匹配）
+                let record = weightRecordsCache[dateInfo.date] || null;
+                
+                // 如果直接匹配不到，尝试查找所有可能的日期格式
+                if (!record) {
+                    const cacheKeys = Object.keys(weightRecordsCache);
+                    for (const key of cacheKeys) {
+                        // 标准化日期格式进行比较
+                        const normalizedKey = key.split('T')[0].split(' ')[0];
+                        const normalizedDate = dateInfo.date.split('T')[0].split(' ')[0];
+                        if (normalizedKey === normalizedDate) {
+                            record = weightRecordsCache[key];
+                            // 更新缓存键为标准格式
+                            if (key !== normalizedDate) {
+                                weightRecordsCache[normalizedDate] = {
+                                    ...record,
+                                    record_date: normalizedDate
+                                };
+                                delete weightRecordsCache[key];
+                            }
+                            break;
+                        }
+                    }
+                }
+                
+                // 调试日志：显示匹配结果
+                if (record) {
+                    console.log(`✅ 日期 ${dateInfo.date} 匹配到记录:`, {
+                        record_date: record.record_date,
+                        weight: record.weight
+                    });
+                }
+                
+                // 如果有记录且体重大于0，使用记录的体重；否则为空字符串
+                const weight = record && record.weight > 0 ? record.weight : '';
+                const lostWeight = record && record.lost_weight !== undefined && record.lost_weight !== null ? parseFloat(record.lost_weight).toFixed(1) : '';
+                const remainingWeight = record && record.remaining_weight !== undefined && record.remaining_weight !== null ? parseFloat(record.remaining_weight).toFixed(1) : '';
                 const photos = record ? (record.photos || []) : [];
+                
+                // 调试日志（仅在有记录时输出）
+                if (record) {
+                    console.log(`📝 日期 ${dateInfo.date} 有记录 - 体重: ${weight}, 已减: ${lostWeight}, 待减: ${remainingWeight}, 照片数: ${photos.length}`);
+                } else {
+                    console.log(`📝 日期 ${dateInfo.date} 无记录`);
+                }
                 
                 dateItem.innerHTML = `
                     <div class="date-item-header">
@@ -951,8 +1036,8 @@
                                     <div class="date-photo-delete" onclick="event.stopPropagation(); deletePhoto('${dateInfo.date}', '${photo}')">×</div>
                                 </div>
                             `).join('')}
-                            <div class="date-photo-upload" onclick="document.querySelector('[data-date=\'${dateInfo.date}\']').click()">
-                                <input type="file" accept="image/*" multiple data-date="${dateInfo.date}" onchange="uploadPhotos('${dateInfo.date}', this.files)" style="display: none;">
+                            <div class="date-photo-upload" onclick="handlePhotoUploadClick('${dateInfo.date}')">
+                                <input type="file" accept="image/*" multiple id="photo-input-${dateInfo.date}" data-date="${dateInfo.date}" onchange="uploadPhotos('${dateInfo.date}', this.files)" style="display: none;">
                                 <div class="date-photo-upload-icon">📷</div>
                             </div>
                         </div>
@@ -1061,7 +1146,13 @@
                     
                     const result = await response.json();
                     if (result.success) {
-                        weightRecordsCache[date] = result.data;
+                        // 确保日期格式正确
+                        const resultDate = result.data.record_date;
+                        const normalizedDate = typeof resultDate === 'string' ? resultDate.split('T')[0].split(' ')[0] : resultDate;
+                        weightRecordsCache[normalizedDate] = {
+                            ...result.data,
+                            record_date: normalizedDate
+                        };
                     } else {
                         alert('保存失败：' + (result.error || '未知错误'));
                         return;
@@ -1081,6 +1172,22 @@
             
             // 重新计算进度
             calculateProgress();
+        }
+
+        // 处理照片上传按钮点击
+        function handlePhotoUploadClick(date) {
+            const input = document.getElementById(`photo-input-${date}`);
+            if (input) {
+                input.click();
+            } else {
+                // 如果找不到，尝试通过data-date查找
+                const inputByDate = document.querySelector(`input[data-date="${date}"]`);
+                if (inputByDate) {
+                    inputByDate.click();
+                } else {
+                    console.error(`找不到日期 ${date} 的照片上传输入框`);
+                }
+            }
         }
 
         // 上传照片
@@ -1115,8 +1222,13 @@
                 
                 const result = await response.json();
                 if (result.success) {
-                    // 更新缓存
-                    weightRecordsCache[date] = result.data;
+                    // 更新缓存，确保日期格式正确
+                    const resultDate = result.data.record_date;
+                    const normalizedDate = typeof resultDate === 'string' ? resultDate.split('T')[0].split(' ')[0] : resultDate;
+                    weightRecordsCache[normalizedDate] = {
+                        ...result.data,
+                        record_date: normalizedDate
+                    };
                     // 重新渲染列表以显示新上传的照片
                     await renderDateList();
                     console.log('✅ 照片上传成功');
@@ -1287,20 +1399,31 @@
         async function init() {
             console.log('🚀 开始初始化页面...');
             
-            // 先加载所有历史数据
-            await fetchAllRecords();
-            
-            // 更新倒计时
-            updateCountdown();
-            
-            // 更新当前体重和进度
-            await updateCurrentWeight();
-            calculateProgress();
-            
-            // 渲染日期列表（会显示所有历史数据）
-            await renderDateList();
-            
-            console.log('✅ 页面初始化完成');
+            try {
+                // 先加载所有历史数据（从列表接口）
+                console.log('📡 步骤1: 调用列表接口加载历史数据...');
+                await fetchAllRecords();
+                console.log('📋 缓存数据:', weightRecordsCache);
+                console.log('📊 缓存记录数:', Object.keys(weightRecordsCache).length);
+                
+                // 更新倒计时
+                console.log('⏰ 步骤2: 更新倒计时...');
+                updateCountdown();
+                
+                // 更新当前体重和进度
+                console.log('📊 步骤3: 更新当前体重和进度...');
+                await updateCurrentWeight();
+                calculateProgress();
+                
+                // 渲染日期列表（会显示所有历史数据）
+                console.log('🎨 步骤4: 渲染日期列表...');
+                await renderDateList();
+                
+                console.log('✅ 页面初始化完成');
+            } catch (err) {
+                console.error('❌ 初始化失败:', err);
+                console.error('错误堆栈:', err.stack);
+            }
             
             // 每秒更新倒计时
             setInterval(updateCountdown, 1000);
