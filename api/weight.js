@@ -171,8 +171,20 @@ router.post('/weight-records', upload.array('photos', 10), async (req, res) => {
   const userId = req.session.userId;
   const { date, weight, initial_weight, target_weight, target_loss, notes } = req.body;
 
+  // 调试日志
+  console.log('📥 接收上传请求:', {
+    userId,
+    date,
+    weight,
+    initial_weight,
+    target_weight,
+    target_loss,
+    filesCount: req.files ? req.files.length : 0
+  });
+
   // 验证必填字段
   if (!date || !weight || !initial_weight || !target_weight || !target_loss) {
+    console.error('❌ 缺少必填字段:', { date, weight, initial_weight, target_weight, target_loss });
     return res.status(400).json({ error: '缺少必填字段：date, weight, initial_weight, target_weight, target_loss' });
   }
 
@@ -282,7 +294,8 @@ router.post('/weight-records', upload.array('photos', 10), async (req, res) => {
       });
     }
   } catch (err) {
-    console.error('保存减肥记录失败:', err);
+    console.error('❌ 保存减肥记录失败:', err);
+    console.error('错误堆栈:', err.stack);
     
     // 清理已上传的文件
     if (req.files && req.files.length > 0) {
@@ -295,7 +308,14 @@ router.post('/weight-records', upload.array('photos', 10), async (req, res) => {
       }
     }
     
-    res.status(500).json({ error: 'Database error', detail: err.message });
+    // 返回更详细的错误信息
+    const errorMessage = err.message || '未知错误';
+    res.status(500).json({ 
+      success: false,
+      error: '保存失败', 
+      detail: errorMessage,
+      message: errorMessage
+    });
   }
 });
 

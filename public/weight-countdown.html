@@ -920,6 +920,13 @@
         async function renderDateList() {
             const container = document.getElementById('dateListContainer');
             const emptyList = document.getElementById('emptyDateList');
+            
+            // 检查必要的DOM元素是否存在
+            if (!container) {
+                console.error('❌ 找不到日期列表容器元素 #dateListContainer');
+                return;
+            }
+            
             const dates = generateDateList();
             
             console.log(`📅 生成了 ${dates.length} 个日期项`);
@@ -933,11 +940,15 @@
             console.log(`📋 当前缓存中有 ${Object.keys(weightRecordsCache).length} 条记录`);
             
             if (dates.length === 0) {
-                emptyList.style.display = 'block';
+                if (emptyList) {
+                    emptyList.style.display = 'block';
+                }
                 return;
             }
             
-            emptyList.style.display = 'none';
+            if (emptyList) {
+                emptyList.style.display = 'none';
+            }
             container.innerHTML = '';
             
             dates.forEach(dateInfo => {
@@ -1215,12 +1226,31 @@
             });
             
             try {
+                console.log(`📤 开始上传照片，日期: ${date}, 文件数: ${files.length}`);
                 const response = await fetch('/api/weight-records', {
                     method: 'POST',
                     body: formData
                 });
                 
+                console.log(`📥 上传响应状态: ${response.status}`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ 上传失败，响应状态:', response.status, '错误信息:', errorText);
+                    let errorMsg = '上传失败';
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorMsg = errorJson.error || errorMsg;
+                    } catch (e) {
+                        errorMsg = errorText || errorMsg;
+                    }
+                    alert('上传失败：' + errorMsg);
+                    return;
+                }
+                
                 const result = await response.json();
+                console.log('📥 上传响应数据:', result);
+                
                 if (result.success) {
                     // 更新缓存，确保日期格式正确
                     const resultDate = result.data.record_date;
@@ -1233,11 +1263,12 @@
                     await renderDateList();
                     console.log('✅ 照片上传成功');
                 } else {
+                    console.error('❌ 上传失败:', result);
                     alert('上传失败：' + (result.error || '未知错误'));
                 }
             } catch (err) {
-                console.error('上传照片失败:', err);
-                alert('上传失败，请重试');
+                console.error('❌ 上传照片异常:', err);
+                alert('上传失败：' + (err.message || '网络错误，请重试'));
             }
         }
 
