@@ -11,6 +11,7 @@ const toolsRoutes = require('./api/tools');
 const bookmarksRoutes = require('./api/bookmarks');
 const diariesRoutes = require('./api/diaries');
 const chatRoutes = require('./api/chat');
+const weightRoutes = require('./api/weight');
 
 const app = express();
 const port = 3000;
@@ -82,6 +83,9 @@ app.use((req, res, next) => {
 // 允许访问静态文件（HTML页面）
 app.use(express.static('public'));
 
+// 允许访问上传的文件
+app.use('/uploads', express.static('uploads'));
+
 // 注册路由
 app.use('/api', authRoutes);      // 登录注册相关：/api/login, /api/register, /api/logout, /api/check-auth
 app.use('/api', audioRoutes);     // 音频相关：/api/audio/:filename
@@ -90,6 +94,7 @@ app.use('/api', toolsRoutes);     // 工具类：/api/crawl, /api/ai-chat, /api/
 app.use('/api', bookmarksRoutes); // 网址导航：/api/bookmarks
 app.use('/api', diariesRoutes);    // 日记：/api/diaries
 app.use('/api', chatRoutes);       // 聊天室：/api/chat/messages
+app.use('/api', weightRoutes);     // 减肥记录：/api/weight-records
 app.use('/', userRoutes);         // 用户管理：/users, /users/search, /seed-users
 
 // 获取本机IP地址
