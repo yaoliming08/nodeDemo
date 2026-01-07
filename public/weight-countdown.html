@@ -1222,6 +1222,59 @@
                 const dailyCaloriesBurn = record ? (record.daily_calories_burn || null) : null;
                 const calorieDeficit = record ? (record.calorie_deficit !== undefined ? parseFloat(record.calorie_deficit) : null) : null;
                 
+                // 从AI分析结果中提取食物列表
+                let foodList = [];
+                if (record && record.calories_analysis) {
+                    try {
+                        const analysis = typeof record.calories_analysis === 'string' 
+                            ? JSON.parse(record.calories_analysis) 
+                            : record.calories_analysis;
+                        
+                        if (Array.isArray(analysis)) {
+                            // 遍历所有分析结果
+                            analysis.forEach(item => {
+                                if (item.foods && Array.isArray(item.foods)) {
+                                    item.foods.forEach(food => {
+                                        if (food.name) {
+                                            // 组合食物名称和分量，格式：食物名称 + 分量（如果有）
+                                            let foodDesc = food.name;
+                                            if (food.portion) {
+                                                // 如果分量描述不包含食物名称，则添加分量
+                                                // 如果分量描述已经包含食物名称（如"一根玉米"），则直接使用
+                                                if (food.portion.includes(food.name)) {
+                                                    foodDesc = food.portion;
+                                                } else {
+                                                    // 否则组合：食物名称 + 分量
+                                                    foodDesc = `${food.name}，${food.portion}`;
+                                                }
+                                            }
+                                            foodList.push(foodDesc);
+                                        }
+                                    });
+                                }
+                            });
+                        } else if (analysis.foods && Array.isArray(analysis.foods)) {
+                            // 如果是单个分析结果对象
+                            analysis.foods.forEach(food => {
+                                if (food.name) {
+                                    let foodDesc = food.name;
+                                    if (food.portion) {
+                                        if (food.portion.includes(food.name)) {
+                                            foodDesc = food.portion;
+                                        } else {
+                                            foodDesc = `${food.name}，${food.portion}`;
+                                        }
+                                    }
+                                    foodList.push(foodDesc);
+                                }
+                            });
+                        }
+                    } catch (err) {
+                        console.error('解析食物分析数据失败:', err);
+                    }
+                }
+                const foodListText = foodList.length > 0 ? foodList.join('，') : '';
+                
                 // 调试日志（仅在有记录时输出）
                 if (record) {
                     console.log(`📝 日期 ${dateInfo.date} 有记录 - 体重: ${weight}, 已减: ${lostWeight}, 待减: ${remainingWeight}, 照片数: ${photos.length}`);
@@ -1313,6 +1366,14 @@
                                     ${calorieDeficit !== null && calorieDeficit !== undefined ? `${calorieDeficit >= 0 ? '+' : ''}${parseFloat(calorieDeficit).toFixed(0)} 大卡` : '--'}
                                 </span>
                             </div>
+                            ${foodListText ? `
+                            <div class="date-calories-row" style="margin-top: 4px;">
+                                <span class="date-calories-label-small">今日吃了:</span>
+                                <span class="date-calories-value-food" style="color: #666; font-size: 13px; line-height: 1.4;">
+                                    ${foodListText}
+                                </span>
+                            </div>
+                            ` : ''}
                             ` : `
                             <div class="date-calories-value" id="calories-${dateInfo.date}">
                                 ${record && record.calories ? `${parseFloat(record.calories).toFixed(0)} 大卡` : '未记录'}
@@ -1971,15 +2032,18 @@
             // 计算差值（当前体重 - 标准体重）
             const diff = currentWeight - standardWeight;
             
-            // 显示差值，正数表示超重，负数表示偏轻
+            // 显示还需要减掉多少斤
             if (diff > 0) {
-                weightDiffElement.textContent = `+${diff.toFixed(1)} 斤（超重）`;
+                // 当前体重大于标准体重，显示还需要减掉多少斤
+                weightDiffElement.textContent = `还需减掉 ${diff.toFixed(1)} 斤`;
                 weightDiffElement.style.color = '#ff6b6b';
             } else if (diff < 0) {
-                weightDiffElement.textContent = `${diff.toFixed(1)} 斤（偏轻）`;
+                // 当前体重小于标准体重，显示已低于标准体重多少斤
+                weightDiffElement.textContent = `已低于标准 ${Math.abs(diff).toFixed(1)} 斤`;
                 weightDiffElement.style.color = '#ffa500';
             } else {
-                weightDiffElement.textContent = '0 斤（标准）';
+                // 已达到标准体重
+                weightDiffElement.textContent = '已达到标准体重';
                 weightDiffElement.style.color = '#28a745';
             }
             
