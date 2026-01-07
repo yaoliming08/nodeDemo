@@ -79,6 +79,94 @@ router.get('/seed-users', async (req, res) => {
   }
 });
 
+// 获取当前登录用户信息
+router.get('/user/info', async (req, res) => {
+  if (!req.session || !req.session.isAuthenticated) {
+    return res.status(401).json({ error: '未登录，请先登录' });
+  }
+
+  const userId = req.session.userId;
+
+  try {
+    const [rows] = await pool.query(
+      'SELECT `user_id`, `username`, `gender`, `age`, `height` FROM `user` WHERE `user_id` = ?',
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: '用户不存在' });
+    }
+
+    const userData = {
+      user_id: rows[0].user_id,
+      username: rows[0].username,
+      gender: rows[0].gender,
+      age: rows[0].age,
+      height: rows[0].height ? parseFloat(rows[0].height) : null
+    };
+    
+    console.log('📤 返回用户信息:', userData);
+    
+    res.json({
+      success: true,
+      data: userData
+    });
+  } catch (err) {
+    console.error('获取用户信息失败:', err);
+    res.status(500).json({ error: 'Database error', detail: err.message });
+  }
+});
+
+// 更新当前登录用户信息
+router.post('/user/update', async (req, res) => {
+  if (!req.session || !req.session.isAuthenticated) {
+    return res.status(401).json({ error: '未登录，请先登录' });
+  }
+
+  const userId = req.session.userId;
+  const { age, height } = req.body;
+
+  try {
+    const updates = [];
+    const values = [];
+
+    if (age !== undefined) {
+      const ageNum = parseInt(age);
+      if (isNaN(ageNum) || ageNum < 1 || ageNum > 120) {
+        return res.status(400).json({ error: '请输入有效的年龄（1-120）' });
+      }
+      updates.push('`age` = ?');
+      values.push(ageNum);
+    }
+
+    if (height !== undefined) {
+      const heightNum = parseFloat(height);
+      if (isNaN(heightNum) || heightNum < 50 || heightNum > 250) {
+        return res.status(400).json({ error: '请输入有效的身高（50-250厘米）' });
+      }
+      updates.push('`height` = ?');
+      values.push(heightNum);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: '请提供要更新的字段（age 或 height）' });
+    }
+
+    values.push(userId);
+
+    const sql = `UPDATE \`user\` SET ${updates.join(', ')} WHERE \`user_id\` = ?`;
+    await pool.query(sql, values);
+
+    res.json({
+      success: true,
+      message: '更新成功'
+    });
+  } catch (err) {
+    console.error('更新用户信息失败:', err);
+    res.status(500).json({ error: 'Database error', detail: err.message });
+  }
+});
+
 module.exports = router;
 
 

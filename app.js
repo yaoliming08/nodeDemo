@@ -95,7 +95,7 @@ app.use('/api', bookmarksRoutes); // 网址导航：/api/bookmarks
 app.use('/api', diariesRoutes);    // 日记：/api/diaries
 app.use('/api', chatRoutes);       // 聊天室：/api/chat/messages
 app.use('/api', weightRoutes);     // 减肥记录：/api/weight-records
-app.use('/', userRoutes);         // 用户管理：/users, /users/search, /seed-users
+app.use('/api', userRoutes);      // 用户管理：/api/users, /api/users/search, /api/user/info, /api/user/update
 
 // 获取本机IP地址
 const os = require('os');

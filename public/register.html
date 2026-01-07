@@ -272,6 +272,36 @@
                 </div>
             </div>
 
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="height">身高<span class="required">*</span></label>
+                    <input 
+                        type="number" 
+                        id="height" 
+                        name="height" 
+                        placeholder="请输入身高（厘米）" 
+                        required 
+                        min="50" 
+                        max="250"
+                        step="0.1"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="weight">体重<span class="required">*</span></label>
+                    <input 
+                        type="number" 
+                        id="weight" 
+                        name="weight" 
+                        placeholder="请输入体重（斤）" 
+                        required 
+                        min="30" 
+                        max="9999"
+                        step="0.1"
+                    >
+                </div>
+            </div>
+
             <div class="form-group">
                 <label for="phone">手机号<span class="required">*</span></label>
                 <input 
@@ -354,11 +384,13 @@
             const confirmPasswordValue = confirmPassword.value;
             const gender = document.getElementById('gender').value;
             const age = parseInt(document.getElementById('age').value);
+            const height = parseFloat(document.getElementById('height').value);
+            const weight = parseFloat(document.getElementById('weight').value);
             const phone = document.getElementById('phone').value.trim();
             const id_card = document.getElementById('id_card').value.trim();
 
             // 验证必填字段
-            if (!username || !passwordValue || !gender || !age || !phone || !id_card) {
+            if (!username || !passwordValue || !gender || !age || !height || !weight || !phone || !id_card) {
                 showError('请填写所有必填字段');
                 return;
             }
@@ -387,6 +419,18 @@
                 return;
             }
 
+            // 验证身高范围
+            if (height < 50 || height > 250) {
+                showError('请输入有效的身高（50-250厘米）');
+                return;
+            }
+
+            // 验证体重范围
+            if (weight < 30 || weight > 9999) {
+                showError('请输入有效的体重（30-9999斤）');
+                return;
+            }
+
             // 显示加载状态
             registerBtn.disabled = true;
             registerBtnText.innerHTML = '<span class="loading"></span>注册中...';
@@ -404,6 +448,8 @@
                         password: passwordValue,
                         gender,
                         age,
+                        height,
+                        weight,
                         phone,
                         id_card
                     })

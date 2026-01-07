@@ -280,6 +280,111 @@
             color: #999;
         }
 
+        .date-calories {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .date-calories-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .date-calories-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .date-calories-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ff6b6b;
+        }
+
+        .date-food-photos {
+            margin-top: 4px;
+        }
+
+        .date-food-photos-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .date-food-photo-item {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .date-food-photo-item:hover {
+            border-color: #ff6b6b;
+            transform: scale(1.05);
+        }
+
+        .date-food-photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .date-food-photo-delete {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            background: rgba(255, 68, 68, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .date-food-photo-item:hover .date-food-photo-delete {
+            opacity: 1;
+        }
+
+        .date-food-photo-upload {
+            width: 50px;
+            height: 50px;
+            border: 2px dashed #ccc;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .date-food-photo-upload:hover {
+            border-color: #ff6b6b;
+            background: #fff0f0;
+        }
+
+        .date-food-photo-upload input {
+            display: none;
+        }
+
+        .date-food-photo-upload-icon {
+            font-size: 20px;
+            color: #999;
+        }
+
         .photo-preview-modal {
             display: none;
             position: fixed;
@@ -453,6 +558,85 @@
         .weight-card-unit {
             font-size: 18px;
             color: #999;
+        }
+
+        .user-info-section {
+            margin-bottom: 30px;
+        }
+
+        .user-info-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .user-info-card:hover {
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .user-info-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e8e9ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-info-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .user-info-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+        }
+
+        .user-info-item {
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            border: 1px solid #f0f0f0;
+        }
+
+        .user-info-item:hover {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+            border-color: #e8e9ff;
+        }
+
+        .user-info-label {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .user-info-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .progress-section {
@@ -638,8 +822,8 @@
     <div class="container">
         <div class="main-content">
             <div class="header">
-                <h1>🎯 减肥倒计时</h1>
-                <p>距离目标日期还有</p>
+                <h1>🎯 过年减肥倒计时，年前要廋50斤</h1>
+                <p>2026年我要记录减掉100斤</p>
             </div>
 
         <div class="countdown-section">
@@ -668,29 +852,57 @@
         <div class="weight-info-grid">
             <div class="weight-card">
                 <div class="weight-card-title">初始体重</div>
-                <div class="weight-card-value">265</div>
+                <div class="weight-card-value" id="initialWeight">0</div>
                 <div class="weight-card-unit">斤</div>
             </div>
             <div class="weight-card">
                 <div class="weight-card-title">当前体重</div>
-                <div class="weight-card-value" id="currentWeight">251</div>
+                <div class="weight-card-value" id="currentWeight">0</div>
                 <div class="weight-card-unit">斤</div>
             </div>
             <div class="weight-card">
                 <div class="weight-card-title">已减重量</div>
-                <div class="weight-card-value" style="color: #28a745;">14</div>
+                <div class="weight-card-value" id="lostWeight" style="color: #28a745;">0</div>
                 <div class="weight-card-unit">斤</div>
             </div>
             <div class="weight-card">
                 <div class="weight-card-title">目标减重</div>
-                <div class="weight-card-value" style="color: #667eea;">50</div>
+                <div class="weight-card-value" id="targetWeight" style="color: #667eea;">0</div>
                 <div class="weight-card-unit">斤</div>
+            </div>
+        </div>
+
+        <div class="user-info-section">
+            <div class="user-info-card">
+                <div class="user-info-title">👤 个人信息</div>
+                <div class="user-info-content">
+                    <div class="user-info-item">
+                        <span class="user-info-label">年龄:</span>
+                        <span class="user-info-value" id="userAge">--</span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="user-info-label">性别:</span>
+                        <span class="user-info-value" id="userGender">--</span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="user-info-label">身高:</span>
+                        <span class="user-info-value" id="userHeight">--</span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="user-info-label">标准体重:</span>
+                        <span class="user-info-value" id="userStandardWeight" style="color: #28a745;">--</span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="user-info-label">距离标准体重:</span>
+                        <span class="user-info-value" id="userWeightDiff" style="color: #ff6b6b;">--</span>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="progress-section">
             <div class="progress-header">
-                <div class="progress-title">📊 减肥进度</div>
+                <div class="progress-title">📊 年前减肥进度</div>
                 <div class="progress-percentage" id="progressPercentage">28%</div>
             </div>
             <div class="progress-bar-container">
@@ -699,8 +911,8 @@
                 </div>
             </div>
             <div class="progress-info">
-                <span>还需减重: <strong id="remainingWeight">36</strong> 斤</span>
-                <span>目标体重: <strong>215</strong> 斤</span>
+                <span>还需减重: <strong id="remainingWeight">0</strong> 斤</span>
+                <span>目标体重: <strong id="targetFinalWeight">0</strong> 斤</span>
             </div>
         </div>
 
@@ -732,10 +944,6 @@
                 💪 加油！你已经减了14斤，继续保持这个势头！
             </div>
         </div>
-
-        <div class="action-buttons">
-            <a href="/index.html" class="btn btn-secondary">返回首页</a>
-        </div>
         </div>
 
         <div class="date-list-section">
@@ -759,12 +967,12 @@
     </div>
 
     <script>
-        // 配置数据
+        // 配置数据（将从接口数据中动态计算）
         const config = {
-            initialWeight: 265,      // 初始体重（斤）
-            currentWeight: 251,       // 当前体重（斤）
-            lostWeight: 14,           // 已减重量（斤）
-            targetWeight: 50,         // 目标减重（斤）
+            initialWeight: 0,        // 初始体重（斤）- 从接口数据获取
+            currentWeight: 0,         // 当前体重（斤）- 从接口数据计算
+            lostWeight: 0,            // 已减重量（斤）- 从接口数据计算
+            targetWeight: 0,          // 目标减重（斤）- 从接口数据获取
             startDate: '2026-01-04',  // 开始日期（2026年1月4日）
             newYearDate: '2026-02-15' // 目标日期（2026年2月15日）
         };
@@ -819,6 +1027,12 @@
                             lost_weight: parseFloat(record.lost_weight) || 0,
                             remaining_weight: parseFloat(record.remaining_weight) || 0,
                             photos: record.photos || [],
+                            food_photos: record.food_photos || [],
+                            calories: record.calories ? parseFloat(record.calories) : null,
+                            calories_analysis: record.calories_analysis || null,
+                            daily_calories_burn: record.daily_calories_burn || null,
+                            bmr: record.bmr || null,
+                            calorie_deficit: record.calorie_deficit !== undefined ? parseFloat(record.calorie_deficit) : null,
                             notes: record.notes || null,
                             created_at: record.created_at,
                             updated_at: record.updated_at
@@ -949,6 +1163,16 @@
             if (emptyList) {
                 emptyList.style.display = 'none';
             }
+            
+            // 按日期倒序排列（最近的日期在前）
+            dates.sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                return dateB - dateA; // 倒序：新日期在前
+            });
+            
+            console.log(`📅 日期已排序，最近的日期: ${dates[0]?.date}`);
+            
             container.innerHTML = '';
             
             dates.forEach(dateInfo => {
@@ -993,6 +1217,10 @@
                 const lostWeight = record && record.lost_weight !== undefined && record.lost_weight !== null ? parseFloat(record.lost_weight).toFixed(1) : '';
                 const remainingWeight = record && record.remaining_weight !== undefined && record.remaining_weight !== null ? parseFloat(record.remaining_weight).toFixed(1) : '';
                 const photos = record ? (record.photos || []) : [];
+                const foodPhotos = record ? (record.food_photos || []) : [];
+                const calories = record ? (record.calories || null) : null;
+                const dailyCaloriesBurn = record ? (record.daily_calories_burn || null) : null;
+                const calorieDeficit = record ? (record.calorie_deficit !== undefined ? parseFloat(record.calorie_deficit) : null) : null;
                 
                 // 调试日志（仅在有记录时输出）
                 if (record) {
@@ -1065,6 +1293,59 @@
                         </div>
                     </div>
                     ` : ''}
+                    <div class="date-calories">
+                        <div class="date-calories-label">🔥 热量管理:</div>
+                        <div class="date-calories-content">
+                            ${record && record.weight > 0 ? `
+                            <div class="date-calories-row">
+                                <span class="date-calories-label-small">消耗:</span>
+                                <span class="date-calories-value-burn">${dailyCaloriesBurn ? dailyCaloriesBurn.toFixed(0) : '--'} 大卡</span>
+                            </div>
+                            <div class="date-calories-row">
+                                <span class="date-calories-label-small">摄入:</span>
+                                <span class="date-calories-value-intake" id="calories-${dateInfo.date}">
+                                    ${calories ? `${parseFloat(calories).toFixed(0)} 大卡` : '未记录'}
+                                </span>
+                            </div>
+                            <div class="date-calories-row">
+                                <span class="date-calories-label-small">差值:</span>
+                                <span class="date-calories-value-deficit" id="calorie-deficit-${dateInfo.date}" style="color: ${(calorieDeficit || 0) >= 0 ? '#28a745' : '#ff6b6b'};">
+                                    ${calorieDeficit !== null && calorieDeficit !== undefined ? `${calorieDeficit >= 0 ? '+' : ''}${parseFloat(calorieDeficit).toFixed(0)} 大卡` : '--'}
+                                </span>
+                            </div>
+                            ` : `
+                            <div class="date-calories-value" id="calories-${dateInfo.date}">
+                                ${record && record.calories ? `${parseFloat(record.calories).toFixed(0)} 大卡` : '未记录'}
+                            </div>
+                            `}
+                            ${dateInfo.canEdit ? `
+                            <div class="date-food-photos">
+                                <div class="date-food-photos-list">
+                                    ${(record && record.food_photos ? record.food_photos : []).map((photo, index) => `
+                                        <div class="date-food-photo-item" onclick="previewPhoto('${photo}')">
+                                            <img src="${photo}" alt="食物${index + 1}">
+                                            <div class="date-food-photo-delete" onclick="event.stopPropagation(); deleteFoodPhoto('${dateInfo.date}', '${photo}')">×</div>
+                                        </div>
+                                    `).join('')}
+                                    <div class="date-food-photo-upload" onclick="handleFoodPhotoUploadClick('${dateInfo.date}')">
+                                        <input type="file" accept="image/*" multiple id="food-photo-input-${dateInfo.date}" data-date="${dateInfo.date}" onchange="uploadFoodPhotos('${dateInfo.date}', this.files)" style="display: none;">
+                                        <div class="date-food-photo-upload-icon">📸</div>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : (record && record.food_photos && record.food_photos.length > 0) ? `
+                            <div class="date-food-photos">
+                                <div class="date-food-photos-list">
+                                    ${record.food_photos.map((photo, index) => `
+                                        <div class="date-food-photo-item" onclick="previewPhoto('${photo}')">
+                                            <img src="${photo}" alt="食物${index + 1}">
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
                 `;
                 
                 container.appendChild(dateItem);
@@ -1146,9 +1427,12 @@
                     const formData = new FormData();
                     formData.append('date', date);
                     formData.append('weight', weightNum);
-                    formData.append('initial_weight', config.initialWeight);
-                    formData.append('target_weight', config.initialWeight - config.targetWeight);
-                    formData.append('target_loss', config.targetWeight);
+                    // 如果配置中还没有初始体重和目标减重，使用默认值（首次保存时）
+                    const initialWeight = config.initialWeight > 0 ? config.initialWeight : 265;
+                    const targetLoss = config.targetWeight > 0 ? config.targetWeight : 50;
+                    formData.append('initial_weight', initialWeight);
+                    formData.append('target_weight', initialWeight - targetLoss);
+                    formData.append('target_loss', targetLoss);
                     
                     const response = await fetch('/api/weight-records', {
                         method: 'POST',
@@ -1177,6 +1461,9 @@
             
             // 更新当前体重（使用最新的体重数据）
             await updateCurrentWeight();
+            
+            // 更新距离标准体重差值
+            updateWeightDiff();
             
             // 重新渲染列表
             await renderDateList();
@@ -1216,9 +1503,12 @@
                 alert('请先输入该日期的体重，然后再上传照片');
                 return;
             }
-            formData.append('initial_weight', config.initialWeight);
-            formData.append('target_weight', config.initialWeight - config.targetWeight);
-            formData.append('target_loss', config.targetWeight);
+            // 如果配置中还没有初始体重和目标减重，使用默认值（首次保存时）
+            const initialWeight = config.initialWeight > 0 ? config.initialWeight : 265;
+            const targetLoss = config.targetWeight > 0 ? config.targetWeight : 50;
+            formData.append('initial_weight', initialWeight);
+            formData.append('target_weight', initialWeight - targetLoss);
+            formData.append('target_loss', targetLoss);
             
             // 添加照片文件
             Array.from(files).forEach(file => {
@@ -1272,6 +1562,149 @@
             }
         }
 
+        // 处理食物照片上传按钮点击
+        function handleFoodPhotoUploadClick(date) {
+            const input = document.getElementById(`food-photo-input-${date}`);
+            if (input) {
+                input.click();
+            } else {
+                const inputByDate = document.querySelector(`input[data-date="${date}"][id^="food-photo-input"]`);
+                if (inputByDate) {
+                    inputByDate.click();
+                } else {
+                    console.error(`找不到日期 ${date} 的食物照片上传输入框`);
+                }
+            }
+        }
+
+        // 上传食物照片并调用AI分析卡路里
+        async function uploadFoodPhotos(date, files) {
+            if (!files || files.length === 0) return;
+            
+            // 检查该日期是否有体重记录（需要先有体重记录才能上传食物照片）
+            const existingRecord = weightRecordsCache[date];
+            if (!existingRecord || !existingRecord.weight) {
+                alert('请先输入该日期的体重，然后再上传食物照片');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('date', date);
+            formData.append('type', 'food'); // 标识这是食物照片
+            
+            // 添加照片文件
+            Array.from(files).forEach(file => {
+                formData.append('food_photos', file);
+            });
+            
+            try {
+                console.log(`📤 开始上传食物照片，日期: ${date}, 文件数: ${files.length}`);
+                
+                // 显示加载提示
+                const caloriesElement = document.getElementById(`calories-${date}`);
+                if (caloriesElement) {
+                    caloriesElement.textContent = 'AI分析中...';
+                    caloriesElement.style.color = '#667eea';
+                }
+                
+                const response = await fetch('/api/weight-records/food', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                console.log(`📥 上传响应状态: ${response.status}`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ 上传失败，响应状态:', response.status, '错误信息:', errorText);
+                    let errorMsg = '上传失败';
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorMsg = errorJson.error || errorMsg;
+                    } catch (e) {
+                        errorMsg = errorText || errorMsg;
+                    }
+                    alert('上传失败：' + errorMsg);
+                    if (caloriesElement) {
+                        caloriesElement.textContent = '分析失败';
+                        caloriesElement.style.color = '#ff6b6b';
+                    }
+                    return;
+                }
+                
+                const result = await response.json();
+                console.log('📥 上传响应数据:', result);
+                
+                if (result.success) {
+                    // 更新缓存
+                    const resultDate = result.data.record_date;
+                    const normalizedDate = typeof resultDate === 'string' ? resultDate.split('T')[0].split(' ')[0] : resultDate;
+                    
+                    if (weightRecordsCache[normalizedDate]) {
+                        weightRecordsCache[normalizedDate] = {
+                            ...weightRecordsCache[normalizedDate],
+                            ...result.data,
+                            record_date: normalizedDate
+                        };
+                    } else {
+                        weightRecordsCache[normalizedDate] = {
+                            ...result.data,
+                            record_date: normalizedDate
+                        };
+                    }
+                    
+                    // 更新卡路里显示
+                    if (caloriesElement && result.data.calories) {
+                        caloriesElement.textContent = `${parseFloat(result.data.calories).toFixed(0)} 大卡`;
+                        caloriesElement.style.color = '#ff6b6b';
+                    }
+                    
+                    // 重新渲染列表以显示新上传的照片
+                    await renderDateList();
+                    console.log('✅ 食物照片上传和AI分析成功');
+                } else {
+                    console.error('❌ 上传失败:', result);
+                    alert('上传失败：' + (result.error || '未知错误'));
+                    if (caloriesElement) {
+                        caloriesElement.textContent = '分析失败';
+                        caloriesElement.style.color = '#ff6b6b';
+                    }
+                }
+            } catch (err) {
+                console.error('❌ 上传食物照片异常:', err);
+                alert('上传失败：' + (err.message || '网络错误，请重试'));
+                const caloriesElement = document.getElementById(`calories-${date}`);
+                if (caloriesElement) {
+                    caloriesElement.textContent = '分析失败';
+                    caloriesElement.style.color = '#ff6b6b';
+                }
+            }
+        }
+
+        // 删除食物照片
+        async function deleteFoodPhoto(date, photoUrl) {
+            if (!confirm('确定要删除这张食物照片吗？删除后需要重新上传才能分析卡路里。')) return;
+            
+            const filename = photoUrl.split('/').pop();
+            try {
+                const response = await fetch(`/api/weight-records/${date}/food-photos/${filename}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                if (result.success) {
+                    // 重新加载数据
+                    await fetchAllRecords();
+                    await renderDateList();
+                    console.log('✅ 食物照片删除成功');
+                } else {
+                    alert('删除失败：' + (result.error || '未知错误'));
+                }
+            } catch (err) {
+                console.error('删除食物照片失败:', err);
+                alert('删除失败，请重试');
+            }
+        }
+
         // 删除照片
         async function deletePhoto(date, photoUrl) {
             if (!confirm('确定要删除这张照片吗？')) return;
@@ -1306,36 +1739,60 @@
             modal.classList.add('show');
         }
 
-        // 更新当前体重（从最新记录中获取）
+        // 从接口数据中提取配置信息并更新显示
+        function updateConfigFromRecords() {
+            const records = Object.values(weightRecordsCache);
+            
+            if (records.length === 0) {
+                console.warn('⚠️ 没有记录数据，无法更新配置');
+                return;
+            }
+            
+            // 从第一条记录获取初始体重和目标减重（这些值在所有记录中应该是一致的）
+            const firstRecord = records[0];
+            config.initialWeight = parseFloat(firstRecord.initial_weight) || 0;
+            config.targetWeight = parseFloat(firstRecord.target_loss) || 0;
+            
+            // 找到最新的体重记录（按日期排序）
+            const sortedRecords = records
+                .filter(r => r.weight > 0)
+                .sort((a, b) => {
+                    const dateA = new Date(a.record_date);
+                    const dateB = new Date(b.record_date);
+                    return dateB - dateA; // 降序，最新的在前
+                });
+            
+            if (sortedRecords.length > 0) {
+                const latestRecord = sortedRecords[0];
+                config.currentWeight = parseFloat(latestRecord.weight) || config.initialWeight;
+            } else {
+                // 如果没有有效记录，使用初始体重
+                config.currentWeight = config.initialWeight;
+            }
+            
+            // 计算已减重量
+            config.lostWeight = config.initialWeight - config.currentWeight;
+            
+            console.log('📊 配置已更新:', {
+                initialWeight: config.initialWeight,
+                currentWeight: config.currentWeight,
+                lostWeight: config.lostWeight,
+                targetWeight: config.targetWeight
+            });
+        }
+        
+        // 更新当前体重显示（从最新记录中获取）
         async function updateCurrentWeight() {
             await fetchAllRecords();
             
-            const dates = Object.keys(weightRecordsCache).filter(date => {
-                const dateObj = new Date(date);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                return dateObj <= today; // 只考虑今天及之前的日期
-            }).sort().reverse();
+            // 从记录中提取配置信息
+            updateConfigFromRecords();
             
-            if (dates.length > 0) {
-                const latestDate = dates[0];
-                const latestRecord = weightRecordsCache[latestDate];
-                const latestWeight = latestRecord.weight;
-                const displayWeight = latestWeight % 1 === 0 ? latestWeight : latestWeight.toFixed(1);
-                document.getElementById('currentWeight').textContent = displayWeight;
-                
-                // 更新已减重量
-                const lostWeight = latestRecord.lost_weight;
-                const lostWeightElement = document.querySelector('.weight-card:nth-child(3) .weight-card-value');
-                if (lostWeightElement) {
-                    const displayLost = lostWeight % 1 === 0 ? lostWeight : lostWeight.toFixed(1);
-                    lostWeightElement.textContent = displayLost;
-                }
-                
-                // 更新配置
-                config.currentWeight = latestWeight;
-                config.lostWeight = lostWeight;
-            }
+            // 更新显示
+            document.getElementById('initialWeight').textContent = config.initialWeight > 0 ? config.initialWeight.toFixed(1) : '0';
+            document.getElementById('currentWeight').textContent = config.currentWeight > 0 ? config.currentWeight.toFixed(1) : '0';
+            document.getElementById('lostWeight').textContent = config.lostWeight > 0 ? config.lostWeight.toFixed(1) : '0';
+            document.getElementById('targetWeight').textContent = config.targetWeight > 0 ? config.targetWeight.toFixed(1) : '0';
         }
 
         // 计算距离目标日期的倒计时
@@ -1383,28 +1840,44 @@
 
         // 计算减肥进度
         function calculateProgress() {
+            // 确保配置已更新
+            if (config.targetWeight === 0) {
+                console.warn('⚠️ 目标减重为0，无法计算进度');
+                return;
+            }
+            
             const progress = (config.lostWeight / config.targetWeight) * 100;
-            const remainingWeight = config.targetWeight - config.lostWeight;
+            const remainingWeight = Math.max(0, config.targetWeight - config.lostWeight);
             const targetFinalWeight = config.initialWeight - config.targetWeight;
 
             // 更新进度条
-            document.getElementById('progressBar').style.width = Math.min(progress, 100) + '%';
-            document.getElementById('progressPercentage').textContent = Math.round(progress) + '%';
-            document.getElementById('remainingWeight').textContent = remainingWeight;
+            const progressPercent = Math.min(100, Math.max(0, progress));
+            document.getElementById('progressBar').style.width = progressPercent + '%';
+            document.getElementById('progressBar').textContent = `${config.lostWeight.toFixed(1)} / ${config.targetWeight} 斤`;
+            document.getElementById('progressPercentage').textContent = progressPercent.toFixed(0) + '%';
+            document.getElementById('remainingWeight').textContent = remainingWeight.toFixed(1);
+            document.getElementById('targetFinalWeight').textContent = targetFinalWeight.toFixed(1);
 
-            // 计算减肥天数（今天是第4天）
-            const daysSinceStart = 4; // 固定为第4天
+            // 计算减肥天数（从开始日期到今天，包含起始日和今天）
+            const start = new Date(config.startDate + 'T00:00:00');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            // 计算日期差值，然后+1（因为包含起始日和今天）
+            const diffDays = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+            const daysSinceStart = Math.max(1, diffDays + 1); // +1 因为包含起始日和今天
             document.getElementById('daysSinceStart').textContent = daysSinceStart;
 
             // 计算日均减重
-            const dailyAverage = (config.lostWeight / daysSinceStart).toFixed(1);
+            const dailyAverage = daysSinceStart > 0 ? (config.lostWeight / daysSinceStart).toFixed(1) : '0.0';
             document.getElementById('dailyAverage').textContent = dailyAverage;
 
             // 计算预计完成天数（基于当前速度）
-            if (dailyAverage > 0) {
-                const daysToGoal = Math.ceil(remainingWeight / dailyAverage);
-                document.getElementById('daysToGoal').textContent = daysToGoal;
-            }
+            const dailyAvgNum = parseFloat(dailyAverage);
+            const remainingWeightForCalc = Math.max(0, config.targetWeight - config.lostWeight);
+            const daysToGoal = remainingWeightForCalc > 0 && dailyAvgNum > 0 
+                ? Math.ceil(remainingWeightForCalc / dailyAvgNum) 
+                : 0;
+            document.getElementById('daysToGoal').textContent = daysToGoal;
 
             // 更新激励语
             updateMotivation(progress);
@@ -1426,6 +1899,143 @@
             }
         }
 
+        // 计算标准体重（根据身高和性别）
+        function calculateStandardWeight(heightCm, gender) {
+            if (!heightCm || heightCm <= 0) {
+                return null;
+            }
+            
+            // 使用世界卫生组织（WHO）标准体重公式
+            // 男性：标准体重(kg) = (身高cm - 80) × 0.7
+            // 女性：标准体重(kg) = (身高cm - 70) × 0.6
+            let standardWeightKg;
+            if (gender === '男' || gender === 'male' || gender === 'M' || gender === 'm') {
+                standardWeightKg = (heightCm - 80) * 0.7;
+            } else if (gender === '女' || gender === 'female' || gender === 'F' || gender === 'f') {
+                standardWeightKg = (heightCm - 70) * 0.6;
+            } else {
+                // 如果性别未知，使用平均值
+                standardWeightKg = (heightCm - 75) * 0.65;
+            }
+            
+            // 转换为斤（1kg = 2斤）
+            const standardWeightJin = standardWeightKg * 2;
+            
+            return standardWeightJin;
+        }
+
+        // 更新距离标准体重差值
+        function updateWeightDiff() {
+            const standardWeightElement = document.getElementById('userStandardWeight');
+            const weightDiffElement = document.getElementById('userWeightDiff');
+            
+            if (!standardWeightElement || !weightDiffElement) {
+                return;
+            }
+            
+            // 获取标准体重文本（格式：XXX.X 斤）
+            const standardWeightText = standardWeightElement.textContent;
+            if (!standardWeightText || standardWeightText === '--') {
+                weightDiffElement.textContent = '--';
+                return;
+            }
+            
+            // 提取标准体重数值
+            const standardWeight = parseFloat(standardWeightText.replace(' 斤', ''));
+            if (isNaN(standardWeight)) {
+                weightDiffElement.textContent = '--';
+                return;
+            }
+            
+            // 从缓存中获取最近的体重记录
+            const dates = Object.keys(weightRecordsCache).sort((a, b) => new Date(b) - new Date(a));
+            if (dates.length === 0) {
+                weightDiffElement.textContent = '--';
+                return;
+            }
+            
+            // 获取最近一天的体重
+            const latestDate = dates[0];
+            const latestRecord = weightRecordsCache[latestDate];
+            if (!latestRecord || !latestRecord.weight) {
+                weightDiffElement.textContent = '--';
+                return;
+            }
+            
+            const currentWeight = parseFloat(latestRecord.weight);
+            if (isNaN(currentWeight)) {
+                weightDiffElement.textContent = '--';
+                return;
+            }
+            
+            // 计算差值（当前体重 - 标准体重）
+            const diff = currentWeight - standardWeight;
+            
+            // 显示差值，正数表示超重，负数表示偏轻
+            if (diff > 0) {
+                weightDiffElement.textContent = `+${diff.toFixed(1)} 斤（超重）`;
+                weightDiffElement.style.color = '#ff6b6b';
+            } else if (diff < 0) {
+                weightDiffElement.textContent = `${diff.toFixed(1)} 斤（偏轻）`;
+                weightDiffElement.style.color = '#ffa500';
+            } else {
+                weightDiffElement.textContent = '0 斤（标准）';
+                weightDiffElement.style.color = '#28a745';
+            }
+            
+            console.log('✅ 距离标准体重:', diff.toFixed(1), '斤');
+        }
+
+        // 获取用户信息
+        async function fetchUserInfo() {
+            try {
+                console.log('📡 正在获取用户信息...');
+                const response = await fetch('/api/user/info');
+                console.log('📥 响应状态:', response.status);
+                
+                if (!response.ok) {
+                    console.error('❌ API响应失败:', response.status, response.statusText);
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('❌ 错误详情:', errorData);
+                    return null;
+                }
+                
+                const result = await response.json();
+                console.log('📋 用户信息响应:', result);
+                
+                if (result.success && result.data) {
+                    const { age, gender, height } = result.data;
+                    console.log('✅ 用户信息:', { age, gender, height });
+                    
+                    document.getElementById('userAge').textContent = age || '--';
+                    document.getElementById('userGender').textContent = gender || '--';
+                    document.getElementById('userHeight').textContent = height ? `${height} cm` : '--';
+                    
+                    // 计算并显示标准体重
+                    if (height && gender) {
+                        const standardWeight = calculateStandardWeight(height, gender);
+                        if (standardWeight !== null) {
+                            document.getElementById('userStandardWeight').textContent = `${standardWeight.toFixed(1)} 斤`;
+                            console.log('✅ 标准体重:', standardWeight.toFixed(1), '斤');
+                        } else {
+                            document.getElementById('userStandardWeight').textContent = '--';
+                        }
+                    } else {
+                        document.getElementById('userStandardWeight').textContent = '--';
+                    }
+                    
+                    console.log('✅ 用户信息已更新到页面');
+                    return result.data;
+                } else {
+                    console.warn('⚠️ 响应格式不正确:', result);
+                }
+            } catch (err) {
+                console.error('❌ 获取用户信息失败:', err);
+            }
+            return null;
+        }
+
+
         // 初始化
         async function init() {
             console.log('🚀 开始初始化页面...');
@@ -1437,18 +2047,29 @@
                 console.log('📋 缓存数据:', weightRecordsCache);
                 console.log('📊 缓存记录数:', Object.keys(weightRecordsCache).length);
                 
+                // 获取用户信息
+                console.log('👤 步骤2: 获取用户信息...');
+                await fetchUserInfo();
+                
+                // 更新距离标准体重差值（需要在体重记录加载后）
+                console.log('📏 步骤2.5: 更新距离标准体重差值...');
+                updateWeightDiff();
+                
                 // 更新倒计时
-                console.log('⏰ 步骤2: 更新倒计时...');
+                console.log('⏰ 步骤3: 更新倒计时...');
                 updateCountdown();
                 
                 // 更新当前体重和进度
-                console.log('📊 步骤3: 更新当前体重和进度...');
+                console.log('📊 步骤4: 更新当前体重和进度...');
                 await updateCurrentWeight();
                 calculateProgress();
                 
                 // 渲染日期列表（会显示所有历史数据）
-                console.log('🎨 步骤4: 渲染日期列表...');
+                console.log('🎨 步骤5: 渲染日期列表...');
                 await renderDateList();
+                
+                // 再次更新距离标准体重差值（确保使用最新的数据）
+                updateWeightDiff();
                 
                 console.log('✅ 页面初始化完成');
             } catch (err) {

@@ -62,10 +62,10 @@ router.get('/check-auth', (req, res) => {
 
 // 注册接口
 router.post('/register', async (req, res) => {
-  const { username, password, gender, age, phone, id_card } = req.body;
+  const { username, password, gender, age, height, weight, phone, id_card } = req.body;
 
   // 验证必填字段
-  if (!username || !password || !gender || !age || !phone || !id_card) {
+  if (!username || !password || !gender || !age || !height || !weight || !phone || !id_card) {
     return res.status(400).json({ error: '请填写所有必填字段' });
   }
 
@@ -77,6 +77,16 @@ router.post('/register', async (req, res) => {
   // 验证年龄范围
   if (age < 1 || age > 120) {
     return res.status(400).json({ error: '请输入有效的年龄（1-120）' });
+  }
+
+  // 验证身高范围
+  if (height < 50 || height > 250) {
+    return res.status(400).json({ error: '请输入有效的身高（50-250厘米）' });
+  }
+
+  // 验证体重范围
+  if (weight < 30 || weight > 9999) {
+    return res.status(400).json({ error: '请输入有效的体重（30-9999斤）' });
   }
 
   // 验证手机号格式
@@ -101,9 +111,9 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: '该手机号已被注册' });
     }
 
-    // 插入新用户
-    const sql = 'INSERT INTO `user` (`username`, `password`, `gender`, `age`, `phone`, `id_card`) VALUES (?, ?, ?, ?, ?, ?)';
-    const [result] = await pool.execute(sql, [username, password, gender, age, phone, id_card]);
+    // 插入新用户（包含身高）
+    const sql = 'INSERT INTO `user` (`username`, `password`, `gender`, `age`, `height`, `phone`, `id_card`) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    const [result] = await pool.execute(sql, [username, password, gender, age, height, phone, id_card]);
 
     res.json({
       success: true,
