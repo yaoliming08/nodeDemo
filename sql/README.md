@@ -137,3 +137,4 @@ node sql/init_database.js
 3. 检查 `user` 表是否存在（其他表依赖它）
 4. 查看控制台输出的错误信息
 
+

@@ -20,3 +20,4 @@ CREATE TABLE IF NOT EXISTS `diaries` (
   CONSTRAINT `fk_diaries_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户日记表';
 
+

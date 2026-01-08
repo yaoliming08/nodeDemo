@@ -16,3 +16,4 @@ CREATE TABLE IF NOT EXISTS `chat_messages` (
   CONSTRAINT `fk_chat_messages_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='聊天室消息表';
 
+

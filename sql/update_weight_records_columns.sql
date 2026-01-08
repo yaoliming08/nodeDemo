@@ -9,3 +9,4 @@ MODIFY COLUMN `target_loss` DECIMAL(6,2) NOT NULL COMMENT '目标减重（斤）
 MODIFY COLUMN `lost_weight` DECIMAL(6,2) NOT NULL DEFAULT 0.00 COMMENT '已减体重（斤）',
 MODIFY COLUMN `remaining_weight` DECIMAL(6,2) NOT NULL DEFAULT 0.00 COMMENT '待减体重（斤）';
 
+

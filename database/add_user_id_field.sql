@@ -21,3 +21,4 @@ ADD PRIMARY KEY (`user_id`);
 
 
 
+
