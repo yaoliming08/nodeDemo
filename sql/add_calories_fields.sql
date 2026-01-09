@@ -8,3 +8,4 @@ ADD COLUMN `calories_analysis` TEXT DEFAULT NULL COMMENT 'AI分析的卡路里�
 
 
 
+

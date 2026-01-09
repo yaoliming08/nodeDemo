@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>装逼钱包修改</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: #e8e8e8;
+            color: #333;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            height: 100vh;
+            padding: 40px;
+        }
+
+        .main-container {
+            display: flex;
+            height: calc(100vh - 80px);
+            gap: 40px;
+            align-items: flex-start;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* 左侧钱包展示区域 - 手机样式 */
+        .wallet-preview-wrapper {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .wallet-preview {
+            width: 375px;
+            height: 812px;
+            background: #1a1a1a;
+            border-radius: 48px;
+            padding: 6px;
+            box-shadow: 0 0 0 2px #333,
+                        0 20px 60px rgba(0, 0, 0, 0.4),
+                        0 0 0 8px #1a1a1a;
+            position: relative;
+            overflow: visible;
+        }
+
+        .wallet-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 134px;
+            height: 30px;
+            background: #1a1a1a;
+            border-radius: 0 0 18px 18px;
+            z-index: 10;
+        }
+
+        .wallet-preview::after {
+            content: '';
+            position: absolute;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 134px;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            z-index: 10;
+        }
+
+        .wallet-preview-content {
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            border-radius: 42px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+
+        .wallet-preview-content::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+        .status-bar {
+            background: #000;
+            color: #fff;
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            height: 44px;
+            font-weight: 500;
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-badge {
+            background: #ff3b30;
+            color: #fff;
+            font-size: 11px;
+            padding: 1px 5px;
+            border-radius: 9px;
+            min-width: 18px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+        }
+
+        .header {
+            background: #fff;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 44px;
+            border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .back-btn {
+            font-size: 18px;
+            color: #1a1a1a;
+            text-decoration: none;
+            padding: 0;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            line-height: 44px;
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #000;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .header-more {
+            font-size: 18px;
+            color: #1a1a1a;
+            padding: 0;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            line-height: 44px;
+        }
+
+        .wallet-banner {
+            background: #07c160;
+            padding: 24px 16px 20px;
+            position: relative;
+        }
+
+        .wallet-top {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .wallet-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #fff;
+            flex: 1;
+        }
+
+        .wallet-icon-wrapper {
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .wallet-icon-receive {
+            width: 52px;
+            height: 52px;
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .wallet-icon-receive::after {
+            content: '✓';
+            color: #07c160;
+            font-size: 32px;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .wallet-icon-wallet {
+            width: 52px;
+            height: 52px;
+            background: #8b5a3c;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 32px;
+        }
+
+        .wallet-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 400;
+        }
+
+        .wallet-amount-container {
+            text-align: center;
+            margin-top: 12px;
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .wallet-amount {
+            font-size: 32px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+
+        .service-section {
+            background: #fff;
+            margin-top: 8px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            color: #888;
+            padding: 12px 16px 8px;
+            font-weight: 400;
+        }
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            padding: 8px 0 16px;
+        }
+
+        .service-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 8px 16px;
+            text-decoration: none;
+            color: #333;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .service-item:active {
+            background: #f5f5f5;
+        }
+
+        .service-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .service-label {
+            font-size: 12px;
+            color: #1a1a1a;
+            text-align: center;
+            line-height: 1.3;
+            max-width: 64px;
+            word-break: break-all;
+        }
+
+        .icon-green { background: #07c160; color: #fff; }
+        .icon-orange { background: #ff9500; color: #fff; }
+        .icon-blue { background: #007aff; color: #fff; }
+        .icon-red { background: #ff3b30; color: #fff; }
+
+        /* 右侧编辑区域 */
+        .edit-panel {
+            flex: 1;
+            background: #fff;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+
+        .edit-panel::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+        .edit-panel-header {
+            margin-bottom: 40px;
+        }
+
+        .edit-panel-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 8px;
+        }
+
+        .edit-panel-subtitle {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .edit-form-group {
+            margin-bottom: 32px;
+        }
+
+        .edit-label {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 12px;
+            display: block;
+            font-weight: 500;
+        }
+
+        .edit-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            font-size: 18px;
+            color: #1a1a1a;
+            background: #fff;
+            -webkit-appearance: none;
+            transition: border-color 0.2s;
+        }
+
+        .edit-input:focus {
+            outline: none;
+            border-color: #07c160;
+            box-shadow: 0 0 0 2px rgba(7, 193, 96, 0.1);
+        }
+
+        .quick-btns {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .quick-btn {
+            padding: 10px 20px;
+            background: #f5f5f5;
+            color: #1a1a1a;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            background: #e5e5e5;
+            border-color: #07c160;
+        }
+
+        .quick-btn:active {
+            background: #d5d5d5;
+        }
+
+        .save-btn {
+            width: 100%;
+            max-width: 400px;
+            padding: 16px;
+            background: #07c160;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.2s;
+        }
+
+        .save-btn:hover {
+            background: #06ad56;
+        }
+
+        .save-btn:active {
+            background: #059648;
+        }
+
+        .preview-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+
+            .wallet-preview {
+                width: 100%;
+                height: 50vh;
+            }
+
+            .edit-panel {
+                padding: 24px;
+            }
+
+            .wallet-amount {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- 左侧钱包展示区域 -->
+        <div class="wallet-preview-wrapper">
+            <div class="wallet-preview">
+                <div class="wallet-preview-content">
+                    <!-- 状态栏 -->
+                    <div class="status-bar">
+                <div class="status-left">
+                    <span>3:01</span>
+                    <span class="status-badge">88</span>
+                    <span>...</span>
+                </div>
+                <div class="status-right">
+                    <span>🌙</span>
+                    <span>📶</span>
+                    <span>5G</span>
+                    <span>5G</span>
+                    <span>📶</span>
+                    <span>🔋 49%</span>
+                </div>
+            </div>
+
+            <!-- 标题栏 -->
+            <div class="header" style="position: relative;">
+                <a href="index.html" class="back-btn">‹</a>
+                <div class="header-title">服务</div>
+                <div class="header-more">⋮</div>
+            </div>
+
+            <!-- 钱包横幅 -->
+            <div class="wallet-banner">
+                <div class="wallet-top">
+                    <div class="wallet-item">
+                        <div class="wallet-icon-wrapper">
+                            <div class="wallet-icon-receive"></div>
+                        </div>
+                        <div class="wallet-label">收付款</div>
+                    </div>
+                    <div class="wallet-item">
+                        <div class="wallet-icon-wrapper">
+                            <div class="wallet-icon-wallet">💼</div>
+                        </div>
+                        <div class="wallet-label">钱包</div>
+                    </div>
+                </div>
+                <div class="wallet-amount-container">
+                    <div class="wallet-amount">
+                        ¥<span id="walletAmount">888,888.88</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 服务分类 -->
+            <div class="service-section">
+                <div class="section-title">金融理财</div>
+                <div class="service-grid">
+                    <a href="#" class="service-item">
+                        <div class="service-icon icon-green">💳</div>
+                        <div class="service-label">信用卡还款</div>
+                    </a>
+                    <a href="#" class="service-item">
+                        <div class="service-icon icon-orange">💰</div>
+                        <div class="service-label">微粒贷借钱</div>
+                    </a>
+                    <a href="#" class="service-item">
+                        <div class="service-icon icon-blue">📈</div>
+                        <div class="service-label">理财通</div>
+                    </a>
+                    <a href="#" class="service-item">
+                        <div class="service-icon icon-red">🛡️</div>
+                        <div class="service-label">保险服务</div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="service-section">
+                <div class="section-title">生活服务</div>
+                <div class="service-grid">
+                    <a href="#" class="service-item">
+                        <div class="service-icon icon-blue">📱</div>
+                        <div class="service-label">手机充值</div>
+                    </a>
+                    <a href="#" class="service-item">
+                        <div class="service-icon icon-green">✓</div>
+                        <div class="service-label">生活缴费</div>
+                    </a>
+                    <a href="#" class="service-item">
+                        <div class="service-icon icon-blue">☁️</div>
+                        <div class="service-label">Q币充值</div>
+                    </a>
+                    <a href="#" class="service-item">
+                        <div class="service-icon icon-green">🏢</div>
+                        <div class="service-label">城市服务</div>
+                    </a>
+                    <a href="#" class="service-item">
+                        <div class="service-icon icon-red">🌸</div>
+                        <div class="service-label">腾讯公益</div>
+                    </a>
+                    <a href="#" class="service-item">
+                        <div class="service-icon icon-orange">🏥</div>
+                        <div class="service-label">医疗健康</div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="service-section">
+                <div class="section-title">交通出行</div>
+                <div class="service-grid">
+                    <a href="#" class="service-item">
+                        <div class="service-icon icon-blue">📍</div>
+                        <div class="service-label">出行服务</div>
+                    </a>
+                    <a href="#" class="service-item">
+                        <div class="service-icon icon-green">🚄</div>
+                        <div class="service-label">火车票机票</div>
+                    </a>
+                    <a href="#" class="service-item">
+                        <div class="service-icon icon-orange">🚗</div>
+                        <div class="service-label">滴滴出行</div>
+                    </a>
+                    <a href="#" class="service-item">
+                        <div class="service-icon icon-green">🏨</div>
+                        <div class="service-label">酒店民宿</div>
+                    </a>
+                </div>
+            </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧编辑区域 -->
+        <div class="edit-panel">
+            <div class="edit-panel-header">
+                <div class="edit-panel-title">修改钱包金额</div>
+                <div class="edit-panel-subtitle">在下方输入新的金额，左侧预览会实时更新</div>
+            </div>
+            <div class="edit-form-group">
+                <label class="edit-label">钱包余额 (元)</label>
+                <input type="number" class="edit-input" id="amountInput" placeholder="请输入金额，如：888888.88" step="0.01" min="0">
+                <div class="quick-btns">
+                    <button class="quick-btn" onclick="setAmount(888888.88)">888,888.88</button>
+                    <button class="quick-btn" onclick="setAmount(999999.99)">999,999.99</button>
+                    <button class="quick-btn" onclick="setAmount(1000000)">1,000,000</button>
+                    <button class="quick-btn" onclick="setAmount(5000000)">5,000,000</button>
+                </div>
+            </div>
+            <button class="save-btn" onclick="saveAmount()">保存金额</button>
+            <div class="preview-label">
+                提示：金额会自动格式化显示，并保存到本地存储
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 格式化金额（添加千分位）
+        function formatAmount(amount) {
+            return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // 快速设置金额
+        function setAmount(amount) {
+            document.getElementById('amountInput').value = amount;
+            updatePreview(amount);
+        }
+
+        // 更新预览
+        function updatePreview(amount) {
+            if (!isNaN(amount) && amount >= 0) {
+                document.getElementById('walletAmount').textContent = formatAmount(amount);
+            }
+        }
+
+        // 保存金额
+        function saveAmount() {
+            const input = document.getElementById('amountInput');
+            const amount = parseFloat(input.value);
+            
+            if (isNaN(amount) || amount < 0) {
+                alert('请输入有效的金额！');
+                return;
+            }
+
+            updatePreview(amount);
+            
+            // 保存到本地存储
+            localStorage.setItem('walletAmount', amount.toString());
+            
+            alert('金额已保存！');
+        }
+
+        // 实时预览
+        document.getElementById('amountInput').addEventListener('input', (e) => {
+            const amount = parseFloat(e.target.value);
+            if (!isNaN(amount) && amount >= 0) {
+                updatePreview(amount);
+            }
+        });
+
+        // 页面加载时读取保存的金额
+        window.addEventListener('load', () => {
+            const savedAmount = localStorage.getItem('walletAmount');
+            if (savedAmount) {
+                const amount = parseFloat(savedAmount);
+                document.getElementById('amountInput').value = amount;
+                updatePreview(amount);
+            }
+        });
+
+        // 输入框回车保存
+        document.getElementById('amountInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                saveAmount();
+            }
+        });
+    </script>
+</body>
+</html>

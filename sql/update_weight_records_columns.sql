@@ -11,3 +11,4 @@ MODIFY COLUMN `remaining_weight` DECIMAL(6,2) NOT NULL DEFAULT 0.00 COMMENT '待
 
 
 
+
