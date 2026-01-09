@@ -595,7 +595,7 @@ router.post('/weight-records/food', upload.array('food_photos', 10), handleMulte
   }
 
   const userId = req.session.userId;
-  const { date } = req.body;
+  const { date, food_description } = req.body;
 
   if (!date) {
     console.error('❌ 缺少必填字段 date');
@@ -645,7 +645,7 @@ router.post('/weight-records/food', upload.array('food_photos', 10), handleMulte
           const imageDataUrl = `data:${imageMimeType};base64,${imageBase64}`;
 
           // 调用豆包AI分析食物卡路里
-          const prompt = `请分析这张食物照片，告诉我：
+          let prompt = `请分析这张食物照片，告诉我：
 1. 照片中有哪些食物（尽量详细，包括食物名称和大概的分量）
 2. 每种食物的估算卡路里（大卡）
 3. 总卡路里（大卡）
@@ -659,6 +659,16 @@ router.post('/weight-records/food', upload.array('food_photos', 10), handleMulte
 }
 
 如果无法识别，请返回 {"error": "无法识别食物"}。`;
+
+          // 如果用户提供了食物描述，将其添加到提示中
+          if (food_description && food_description.trim()) {
+            prompt = `用户提供了以下食物描述信息：${food_description.trim()}
+
+${prompt}
+
+请注意：请参考用户提供的描述信息，结合照片内容进行分析。如果用户的描述与照片一致，请优先使用用户描述中的信息（如：有糖/无糖、具体分量等）。`;
+            console.log('💬 用户提供了食物描述:', food_description.trim());
+          }
 
           const result = await doubaoVision(imageDataUrl, prompt, 'doubao-seed-1-6-251015', {
             maxCompletionTokens: 2000,

@@ -385,6 +385,69 @@
             color: #999;
         }
 
+        .date-food-description {
+            margin-top: 8px;
+            width: 100%;
+        }
+
+        .date-food-description-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .date-food-description-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            resize: vertical;
+            min-height: 36px;
+            max-height: 100px;
+        }
+
+        .date-food-description-input:focus {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+
+        .date-food-description-input::placeholder {
+            color: #999;
+        }
+
+        .date-calories-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .date-calories-label-small {
+            font-size: 12px;
+            color: #999;
+            min-width: 50px;
+        }
+
+        .date-calories-value-burn,
+        .date-calories-value-intake,
+        .date-calories-value-deficit {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .date-calories-value-burn {
+            color: #667eea;
+        }
+
+        .date-calories-value-intake {
+            color: #ff6b6b;
+        }
+
         .photo-preview-modal {
             display: none;
             position: fixed;
@@ -1393,6 +1456,16 @@
                                         <div class="date-food-photo-upload-icon">📸</div>
                                     </div>
                                 </div>
+                                <div class="date-food-description">
+                                    <label class="date-food-description-label" for="food-description-${dateInfo.date}">💬 食物描述（可选，如：有糖豆浆、2个卤蛋）:</label>
+                                    <textarea 
+                                        class="date-food-description-input" 
+                                        id="food-description-${dateInfo.date}" 
+                                        data-date="${dateInfo.date}"
+                                        placeholder="例如：有糖豆浆，约250毫升，卤蛋2个"
+                                        rows="2"
+                                    ></textarea>
+                                </div>
                             </div>
                             ` : (record && record.food_photos && record.food_photos.length > 0) ? `
                             <div class="date-food-photos">
@@ -1653,6 +1726,13 @@
             formData.append('date', date);
             formData.append('type', 'food'); // 标识这是食物照片
             
+            // 获取食物描述文本
+            const descriptionElement = document.getElementById(`food-description-${date}`);
+            const foodDescription = descriptionElement ? descriptionElement.value.trim() : '';
+            if (foodDescription) {
+                formData.append('food_description', foodDescription);
+            }
+            
             // 添加照片文件
             Array.from(files).forEach(file => {
                 formData.append('food_photos', file);
@@ -1718,6 +1798,12 @@
                     if (caloriesElement && result.data.calories) {
                         caloriesElement.textContent = `${parseFloat(result.data.calories).toFixed(0)} 大卡`;
                         caloriesElement.style.color = '#ff6b6b';
+                    }
+                    
+                    // 清空描述输入框
+                    const descriptionElement = document.getElementById(`food-description-${date}`);
+                    if (descriptionElement) {
+                        descriptionElement.value = '';
                     }
                     
                     // 重新渲染列表以显示新上传的照片
