@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片取色器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-3px);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 20px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #e9ecef;
+        }
+
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .upload-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 18px;
+            color: #667eea;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .image-container {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            background: #f8f9fa;
+            text-align: center;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            cursor: crosshair;
+        }
+
+        .color-info {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .color-info h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .color-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .color-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 4px solid #fff;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .color-values {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .color-value-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .color-value-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .color-value-content {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .color-value-content:hover {
+            background: #e9ecef;
+        }
+
+        .color-value-content.copied {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .history-section {
+            margin-top: 30px;
+        }
+
+        .history-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .history-colors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .history-color-item {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 3px solid #fff;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .history-color-item:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+        }
+
+        .clear-btn {
+            padding: 8px 16px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .clear-btn:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .color-display {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .color-values {
+                grid-template-columns: 1fr;
+            }
+
+            .back-btn {
+                position: relative;
+                top: 0;
+                left: 0;
+                display: inline-block;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" style="position: relative;">
+            <a href="index.html" class="back-btn">← 返回首页</a>
+            <h1>🎨 图片取色器</h1>
+            <p>上传图片，点击任意位置即可获取颜色值</p>
+        </div>
+
+        <div class="content">
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📷</div>
+                    <div class="upload-text">点击或拖拽图片到此处上传</div>
+                    <div class="upload-hint">支持 JPG、PNG、GIF 等常见图片格式</div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*">
+            </div>
+
+            <div id="imageSection" style="display: none; text-align: center;">
+                <div class="image-container">
+                    <img id="previewImage" alt="预览图片">
+                </div>
+            </div>
+
+            <div id="colorInfoSection" style="display: none;">
+                <div class="color-info">
+                    <h2>当前颜色</h2>
+                    <div class="color-display">
+                        <div class="color-preview" id="colorPreview"></div>
+                        <div class="color-values">
+                            <div class="color-value-item">
+                                <div class="color-value-label">RGB</div>
+                                <div class="color-value-content" id="rgbValue" data-value="">rgb(0, 0, 0)</div>
+                            </div>
+                            <div class="color-value-item">
+                                <div class="color-value-label">HEX</div>
+                                <div class="color-value-content" id="hexValue" data-value="">#000000</div>
+                            </div>
+                            <div class="color-value-item">
+                                <div class="color-value-label">HSL</div>
+                                <div class="color-value-content" id="hslValue" data-value="">hsl(0, 0%, 0%)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-section">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <h3 class="history-title">取色历史</h3>
+                        <button class="clear-btn" id="clearHistoryBtn">清空历史</button>
+                    </div>
+                    <div class="history-colors" id="historyColors"></div>
+                </div>
+            </div>
+
+            <div id="emptyState" class="empty-state">
+                <div class="empty-state-icon">🎨</div>
+                <div class="empty-state-text">请上传一张图片开始取色</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const previewImage = document.getElementById('previewImage');
+        const imageSection = document.getElementById('imageSection');
+        const colorInfoSection = document.getElementById('colorInfoSection');
+        const emptyState = document.getElementById('emptyState');
+        const colorPreview = document.getElementById('colorPreview');
+        const rgbValue = document.getElementById('rgbValue');
+        const hexValue = document.getElementById('hexValue');
+        const hslValue = document.getElementById('hslValue');
+        const historyColors = document.getElementById('historyColors');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+        let colorHistory = JSON.parse(localStorage.getItem('colorHistory') || '[]');
+
+        // 上传区域点击事件
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // 文件选择事件
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                loadImage(file);
+            }
+        });
+
+        // 拖拽事件
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                loadImage(file);
+            }
+        });
+
+        // 加载图片
+        function loadImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                imageSection.style.display = 'block';
+                emptyState.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 图片点击取色
+        previewImage.addEventListener('click', (e) => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = previewImage.naturalWidth;
+            canvas.height = previewImage.naturalHeight;
+            ctx.drawImage(previewImage, 0, 0);
+
+            const rect = previewImage.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) * (previewImage.naturalWidth / rect.width));
+            const y = Math.floor((e.clientY - rect.top) * (previewImage.naturalHeight / rect.height));
+
+            const imageData = ctx.getImageData(x, y, 1, 1);
+            const [r, g, b] = imageData.data;
+
+            updateColorInfo(r, g, b);
+            addToHistory(r, g, b);
+            displayHistory();
+        });
+
+        // 更新颜色信息
+        function updateColorInfo(r, g, b) {
+            const hex = rgbToHex(r, g, b);
+            const hsl = rgbToHsl(r, g, b);
+
+            colorPreview.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+            colorPreview.textContent = '';
+
+            rgbValue.textContent = `rgb(${r}, ${g}, ${b})`;
+            rgbValue.setAttribute('data-value', `rgb(${r}, ${g}, ${b})`);
+
+            hexValue.textContent = `#${hex}`;
+            hexValue.setAttribute('data-value', `#${hex}`);
+
+            hslValue.textContent = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+            hslValue.setAttribute('data-value', `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`);
+
+            colorInfoSection.style.display = 'block';
+        }
+
+        // RGB转HEX
+        function rgbToHex(r, g, b) {
+            return [r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        // RGB转HSL
+        function rgbToHsl(r, g, b) {
+            r /= 255;
+            g /= 255;
+            b /= 255;
+
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+            }
+
+            return {
+                h: Math.round(h * 360),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        }
+
+        // 添加到历史记录
+        function addToHistory(r, g, b) {
+            const hex = rgbToHex(r, g, b);
+            const color = {
+                r, g, b, hex,
+                timestamp: Date.now()
+            };
+
+            // 移除重复的颜色
+            colorHistory = colorHistory.filter(c => c.hex !== hex);
+            colorHistory.unshift(color);
+
+            // 限制历史记录数量
+            if (colorHistory.length > 50) {
+                colorHistory = colorHistory.slice(0, 50);
+            }
+
+            localStorage.setItem('colorHistory', JSON.stringify(colorHistory));
+        }
+
+        // 显示历史记录
+        function displayHistory() {
+            historyColors.innerHTML = '';
+            colorHistory.forEach((color, index) => {
+                const item = document.createElement('div');
+                item.className = 'history-color-item';
+                item.style.backgroundColor = `rgb(${color.r}, ${color.g}, ${color.b})`;
+                item.title = `#${color.hex}`;
+                item.addEventListener('click', () => {
+                    updateColorInfo(color.r, color.g, color.b);
+                });
+                historyColors.appendChild(item);
+            });
+        }
+
+        // 清空历史记录
+        clearHistoryBtn.addEventListener('click', () => {
+            if (confirm('确定要清空所有取色历史吗？')) {
+                colorHistory = [];
+                localStorage.setItem('colorHistory', JSON.stringify(colorHistory));
+                displayHistory();
+            }
+        });
+
+        // 复制颜色值
+        [rgbValue, hexValue, hslValue].forEach(element => {
+            element.addEventListener('click', () => {
+                const text = element.getAttribute('data-value');
+                navigator.clipboard.writeText(text).then(() => {
+                    element.classList.add('copied');
+                    setTimeout(() => {
+                        element.classList.remove('copied');
+                    }, 1000);
+                });
+            });
+        });
+
+        // 初始化显示历史记录
+        displayHistory();
+    </script>
+</body>
+</html>
+

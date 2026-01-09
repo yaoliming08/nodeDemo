@@ -111,7 +111,26 @@
         }
 
         .category-card.expanded .category-content {
-            max-height: 2000px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .category-card.expanded .category-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .category-card.expanded .category-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .category-card.expanded .category-content::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        .category-card.expanded .category-content::-webkit-scrollbar-thumb:hover {
+            background: #5568d3;
         }
 
         .features-list {
@@ -212,7 +231,7 @@
                         <div class="category-icon">🛠️</div>
                         <div>
                             <div class="category-title">工具方法集合</div>
-                            <div class="category-count">6 个工具</div>
+                            <div class="category-count">7 个工具</div>
                         </div>
                     </div>
                     <div class="category-toggle">▼</div>
@@ -260,6 +279,13 @@
                                 <div class="feature-item-title">商品比价工具</div>
                             </div>
                             <div class="feature-item-description">AI识别商品信息，对比拼多多、淘宝、京东三大平台价格</div>
+                        </a>
+                        <a href="color-picker.html" class="feature-item">
+                            <div class="feature-item-header">
+                                <div class="feature-item-icon">🎨</div>
+                                <div class="feature-item-title">图片取色器</div>
+                            </div>
+                            <div class="feature-item-description">上传图片后点击任意区域取色，支持RGB、HEX、HSL格式，可保存取色历史</div>
                         </a>
                     </div>
                 </div>
