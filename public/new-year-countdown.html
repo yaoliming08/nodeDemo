@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026年过年倒计时</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: #0a0a0f;
+            color: white;
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .countdown-container {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .title {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #ff6b9d, #c471ed, #12c2e9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 107, 157, 0.5);
+        }
+
+        .countdown-box {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px 60px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .countdown-display {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .countdown-item {
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .countdown-number {
+            font-size: 72px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ff6b9d, #c471ed, #12c2e9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(255, 107, 157, 0.3);
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .countdown-label {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        .target-date {
+            margin-top: 30px;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .social-questions {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .question-tag {
+            position: absolute;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            white-space: nowrap;
+            pointer-events: none;
+            animation: float 20s infinite ease-in-out;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .question-tag:hover {
+            opacity: 1;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(20px, -20px) scale(1.05);
+            }
+            50% {
+                transform: translate(-20px, 20px) scale(0.95);
+            }
+            75% {
+                transform: translate(20px, 20px) scale(1.02);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 28px;
+            }
+
+            .countdown-box {
+                padding: 30px 20px;
+            }
+
+            .countdown-number {
+                font-size: 48px;
+            }
+
+            .countdown-item {
+                min-width: 80px;
+            }
+
+            .countdown-label {
+                font-size: 16px;
+            }
+
+            .countdown-display {
+                gap: 15px;
+            }
+
+            .question-tag {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles-canvas"></canvas>
+    <div class="social-questions" id="socialQuestions"></div>
+    
+    <div class="container">
+        <a href="index.html" class="back-btn">← 返回首页</a>
+        
+        <div class="countdown-container">
+            <div class="title">🎉 2026年春节倒计时</div>
+            <div class="countdown-box">
+                <div class="countdown-display">
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="days">0</div>
+                        <div class="countdown-label">天</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="hours">0</div>
+                        <div class="countdown-label">时</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="minutes">0</div>
+                        <div class="countdown-label">分</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="seconds">0</div>
+                        <div class="countdown-label">秒</div>
+                    </div>
+                </div>
+                <div class="target-date" id="targetDate"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 2026年春节日期（农历正月初一，公历2026年2月17日）
+        const targetDate = new Date('2026-02-17T00:00:00');
+
+        // 社会问题文案库（100个）
+        const socialQuestions = [
+            '去年你瘦了么？', '去年你赚钱了么？', '找到对象了么？',
+            '升职加薪了么？', '买房买车了么？', '脱单了么？',
+            '存到钱了吗？', '学会新技能了吗？', '换工作了么？',
+            '考到证书了么？', '实现目标了么？', '过得开心了么？',
+            '还清债务了么？', '开始健身了么？', '戒掉坏习惯了么？',
+            '旅行计划完成了么？', '读完书单了么？', '学会理财了么？',
+            '改善关系了么？', '找到方向了么？', '实现梦想了么？',
+            '开始创业了么？', '股票赚钱了么？', '学会投资了么？',
+            '还完房贷了么？', '换新车了么？', '装修完房子了么？',
+            '找到理想工作了么？', '加薪成功了么？', '跳槽成功了么？',
+            '考公务员了么？', '考研成功了么？', '考博士了么？',
+            '学会做饭了么？', '学会开车了么？', '学会游泳了么？',
+            '学会英语了么？', '学会编程了么？', '学会画画了么？',
+            '学会音乐了么？', '学会舞蹈了么？', '学会摄影了么？',
+            '学会视频剪辑了么？', '学会设计了么？', '学会写作了么？',
+            '开始写日记了么？', '开始早睡了么？', '开始早起了么？',
+            '开始运动了么？', '开始读书了么？', '开始学习了么？',
+            '开始存钱了么？', '开始投资了么？', '开始理财了么？',
+            '开始计划了么？', '开始行动了么？', '开始改变了么？',
+            '还熬夜么？', '还拖延么？', '还焦虑么？',
+            '还迷茫么？', '还孤单么？', '还烦恼么？',
+            '还害怕么？', '还犹豫么？', '还后悔么？',
+            '还抱怨么？', '还懒惰么？', '还消极么？',
+            '还自卑么？', '还自大么？', '还骄傲么？',
+            '还固执么？', '还任性么？', '还幼稚么？',
+            '还冲动么？', '还急躁么？', '还浮躁么？',
+            '还贪心么？', '还自私么？', '还小气么？',
+            '还虚伪么？', '还做作么？', '还装逼么？',
+            '还攀比么？', '还嫉妒么？', '还抱怨么？',
+            '还生气么？', '还委屈么？', '还难过么？',
+            '还失望么？', '还绝望么？', '还放弃么？',
+            '还坚持么？', '还努力么？', '还奋斗么？',
+            '还拼搏么？', '还追求么？', '还梦想么？',
+            '还相信么？', '还希望么？', '还热爱么？',
+            '还珍惜么？', '还感恩么？', '还善良么？',
+            '还真诚么？', '还勇敢么？', '还坚强么？',
+            '还乐观么？', '还积极么？', '还向上么？',
+            '还成长么？', '还进步么？', '还改变么？',
+            '还努力么？', '还坚持么？', '还奋斗么？'
+        ];
+
+        // 粒子系统
+        class ParticleSystem {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.particleCount = 150;
+                
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                this.init();
+                this.animate();
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            init() {
+                this.particles = [];
+                for (let i = 0; i < this.particleCount; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        radius: Math.random() * 3 + 1,
+                        vx: (Math.random() - 0.5) * 0.5,
+                        vy: (Math.random() - 0.5) * 0.5,
+                        color: this.getRandomColor(),
+                        opacity: Math.random() * 0.5 + 0.3
+                    });
+                }
+            }
+
+            getRandomColor() {
+                const colors = [
+                    '#ff6b9d', '#c471ed', '#12c2e9', 
+                    '#ffa500', '#ff4757', '#5f27cd',
+                    '#00d2d3', '#ff6348', '#ff9ff3'
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.particles.forEach((particle, i) => {
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+
+                    if (particle.x < 0 || particle.x > this.canvas.width) particle.vx *= -1;
+                    if (particle.y < 0 || particle.y > this.canvas.height) particle.vy *= -1;
+
+                    this.ctx.beginPath();
+                    this.ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                    this.ctx.fillStyle = particle.color;
+                    this.ctx.globalAlpha = particle.opacity;
+                    this.ctx.fill();
+                });
+
+                // 绘制连线
+                this.drawConnections();
+                
+                requestAnimationFrame(() => this.animate());
+            }
+
+            drawConnections() {
+                this.ctx.globalAlpha = 0.2;
+                for (let i = 0; i < this.particles.length; i++) {
+                    for (let j = i + 1; j < this.particles.length; j++) {
+                        const dx = this.particles[i].x - this.particles[j].x;
+                        const dy = this.particles[i].y - this.particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < 150) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
+                            this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
+                            this.ctx.strokeStyle = this.particles[i].color;
+                            this.ctx.lineWidth = 1;
+                            this.ctx.stroke();
+                        }
+                    }
+                }
+                this.ctx.globalAlpha = 1;
+            }
+        }
+
+        // 创建问题标签
+        function createQuestionTags() {
+            const container = document.getElementById('socialQuestions');
+            const questionCount = 100;
+            
+            // 清空容器
+            container.innerHTML = '';
+            
+            // 创建100个问题标签
+            for (let i = 0; i < questionCount; i++) {
+                const tag = document.createElement('div');
+                tag.className = 'question-tag';
+                tag.textContent = socialQuestions[i % socialQuestions.length];
+                
+                // 随机位置（避开中间倒计时区域）
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                const minDistance = 300; // 最小距离中心点的距离
+                
+                let x, y, distance;
+                do {
+                    x = Math.random() * (window.innerWidth - 200) + 100;
+                    y = Math.random() * (window.innerHeight - 100) + 50;
+                    distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                } while (distance < minDistance);
+                
+                tag.style.left = x + 'px';
+                tag.style.top = y + 'px';
+                
+                // 随机动画延迟
+                tag.style.animationDelay = Math.random() * 20 + 's';
+                tag.style.animationDuration = (15 + Math.random() * 10) + 's';
+                
+                container.appendChild(tag);
+            }
+        }
+
+        // 更新倒计时
+        function updateCountdown() {
+            const now = new Date();
+            const diff = targetDate - now;
+
+            if (diff <= 0) {
+                document.getElementById('days').textContent = '0';
+                document.getElementById('hours').textContent = '0';
+                document.getElementById('minutes').textContent = '0';
+                document.getElementById('seconds').textContent = '0';
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('days').textContent = String(days).padStart(2, '0');
+            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+        }
+
+        // 初始化
+        window.addEventListener('load', () => {
+            // 初始化粒子系统
+            const canvas = document.getElementById('particles-canvas');
+            new ParticleSystem(canvas);
+            
+            // 创建问题标签
+            createQuestionTags();
+            
+            // 更新目标日期显示
+            document.getElementById('targetDate').textContent = `距离 ${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月${targetDate.getDate()}日 还有`;
+            
+            // 初始更新倒计时
+            updateCountdown();
+            
+            // 每秒更新倒计时
+            setInterval(updateCountdown, 1000);
+            
+            // 窗口大小改变时重新创建标签
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(createQuestionTags, 300);
+            });
+        });
+    </script>
+</body>
+</html>
+
