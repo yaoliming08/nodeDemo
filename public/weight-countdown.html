@@ -492,6 +492,166 @@
             background: rgba(255, 255, 255, 0.3);
         }
 
+        .food-description-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10001;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .food-description-modal.show {
+            display: flex;
+        }
+
+        .food-description-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .food-description-modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .food-description-modal-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #666;
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .food-description-modal-close:hover {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .food-description-modal-body {
+            margin-bottom: 24px;
+        }
+
+        .food-description-modal-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .food-description-modal-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            resize: vertical;
+            min-height: 100px;
+            max-height: 200px;
+        }
+
+        .food-description-modal-textarea:focus {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+
+        .food-description-modal-textarea::placeholder {
+            color: #999;
+        }
+
+        .food-description-modal-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 6px;
+        }
+
+        .food-description-modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .food-description-modal-btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .food-description-modal-btn-cancel {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .food-description-modal-btn-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .food-description-modal-btn-confirm {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+        }
+
+        .food-description-modal-btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        }
+
+        .food-description-preview-images {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .food-description-preview-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid #e0e0e0;
+        }
+
         .empty-date-list {
             text-align: center;
             padding: 40px 20px;
@@ -1029,6 +1189,31 @@
         <img id="photoPreviewImg" src="" alt="预览" onclick="event.stopPropagation()">
     </div>
 
+    <!-- 食物描述输入模态框 -->
+    <div class="food-description-modal" id="foodDescriptionModal">
+        <div class="food-description-modal-content" onclick="event.stopPropagation()">
+            <div class="food-description-modal-header">
+                <span>💬 添加食物描述</span>
+                <div class="food-description-modal-close" onclick="closeFoodDescriptionModal()">×</div>
+            </div>
+            <div class="food-description-modal-body">
+                <div class="food-description-preview-images" id="foodDescriptionPreviewImages"></div>
+                <label class="food-description-modal-label" for="foodDescriptionInput">食物描述（可选）:</label>
+                <textarea 
+                    class="food-description-modal-textarea" 
+                    id="foodDescriptionInput" 
+                    placeholder="例如：有糖豆浆，约250毫升，卤蛋2个"
+                    rows="4"
+                ></textarea>
+                <div class="food-description-modal-hint">💡 提示：填写详细的食物描述可以帮助AI更准确地分析卡路里，如：有糖/无糖、具体分量等</div>
+            </div>
+            <div class="food-description-modal-footer">
+                <button type="button" class="food-description-modal-btn food-description-modal-btn-cancel" onclick="closeFoodDescriptionModal()">取消</button>
+                <button type="button" class="food-description-modal-btn food-description-modal-btn-confirm" onclick="confirmFoodDescription(); return false;">确认上传</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 配置数据（将从接口数据中动态计算）
         const config = {
@@ -1452,19 +1637,9 @@
                                         </div>
                                     `).join('')}
                                     <div class="date-food-photo-upload" onclick="handleFoodPhotoUploadClick('${dateInfo.date}')">
-                                        <input type="file" accept="image/*" multiple id="food-photo-input-${dateInfo.date}" data-date="${dateInfo.date}" onchange="uploadFoodPhotos('${dateInfo.date}', this.files)" style="display: none;">
+                                        <input type="file" accept="image/*" multiple id="food-photo-input-${dateInfo.date}" data-date="${dateInfo.date}" onchange="handleFoodPhotoFilesSelected('${dateInfo.date}', this.files)" style="display: none;">
                                         <div class="date-food-photo-upload-icon">📸</div>
                                     </div>
-                                </div>
-                                <div class="date-food-description">
-                                    <label class="date-food-description-label" for="food-description-${dateInfo.date}">💬 食物描述（可选，如：有糖豆浆、2个卤蛋）:</label>
-                                    <textarea 
-                                        class="date-food-description-input" 
-                                        id="food-description-${dateInfo.date}" 
-                                        data-date="${dateInfo.date}"
-                                        placeholder="例如：有糖豆浆，约250毫升，卤蛋2个"
-                                        rows="2"
-                                    ></textarea>
                                 </div>
                             </div>
                             ` : (record && record.food_photos && record.food_photos.length > 0) ? `
@@ -1711,9 +1886,137 @@
             }
         }
 
-        // 上传食物照片并调用AI分析卡路里
-        async function uploadFoodPhotos(date, files) {
+        // 存储待上传的文件和日期
+        let pendingFoodUpload = {
+            date: null,
+            files: null
+        };
+
+        // 防止重复上传的标志
+        let isUploadingFood = false;
+
+        // 处理食物照片文件选择（显示模态框）
+        function handleFoodPhotoFilesSelected(date, files) {
             if (!files || files.length === 0) return;
+            
+            // 检查该日期是否有体重记录
+            const existingRecord = weightRecordsCache[date];
+            if (!existingRecord || !existingRecord.weight) {
+                alert('请先输入该日期的体重，然后再上传食物照片');
+                // 清空文件选择
+                const input = document.getElementById(`food-photo-input-${date}`);
+                if (input) input.value = '';
+                return;
+            }
+            
+            // 保存待上传的文件和日期（将FileList转换为数组，因为FileList可能在后续操作中失效）
+            pendingFoodUpload.date = date;
+            pendingFoodUpload.files = Array.from(files); // 转换为数组保存
+            
+            // 显示照片预览
+            const previewContainer = document.getElementById('foodDescriptionPreviewImages');
+            previewContainer.innerHTML = '';
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'food-description-preview-image';
+                    previewContainer.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            // 清空描述输入框
+            const descriptionInput = document.getElementById('foodDescriptionInput');
+            if (descriptionInput) {
+                descriptionInput.value = '';
+            }
+            
+            // 显示模态框
+            const modal = document.getElementById('foodDescriptionModal');
+            if (modal) {
+                modal.classList.add('show');
+            }
+        }
+
+        // 关闭食物描述模态框
+        function closeFoodDescriptionModal() {
+            const modal = document.getElementById('foodDescriptionModal');
+            if (modal) {
+                modal.classList.remove('show');
+            }
+            // 清空文件输入（如果有）
+            if (pendingFoodUpload.date) {
+                const input = document.getElementById(`food-photo-input-${pendingFoodUpload.date}`);
+                if (input) input.value = '';
+            }
+            // 清空待上传数据
+            pendingFoodUpload.date = null;
+            pendingFoodUpload.files = null;
+        }
+
+        // 确认上传食物照片（从模态框）
+        async function confirmFoodDescription() {
+            // 防止重复点击
+            if (isUploadingFood) {
+                console.warn('⚠️ 上传正在进行中，请勿重复点击');
+                return;
+            }
+            
+            console.log('🔵 confirmFoodDescription 被调用');
+            console.log('📋 pendingFoodUpload:', pendingFoodUpload);
+            
+            if (!pendingFoodUpload.date || !pendingFoodUpload.files) {
+                console.error('❌ 没有待上传的文件');
+                alert('没有待上传的文件，请重新选择');
+                return;
+            }
+            
+            // 设置上传标志
+            isUploadingFood = true;
+            
+            // 先保存数据到局部变量（避免被closeFoodDescriptionModal清空）
+            const uploadDate = pendingFoodUpload.date;
+            const uploadFiles = pendingFoodUpload.files; // 这已经是数组了
+            
+            console.log('✅ 准备上传，日期:', uploadDate, '文件数:', uploadFiles.length);
+            console.log('📁 文件详情:', uploadFiles.map(f => ({ name: f.name, size: f.size, type: f.type })));
+            
+            // 获取描述文本
+            const descriptionInput = document.getElementById('foodDescriptionInput');
+            const foodDescription = descriptionInput ? descriptionInput.value.trim() : '';
+            
+            console.log('💬 食物描述:', foodDescription || '(无)');
+            
+            // 关闭模态框（会清空pendingFoodUpload）
+            closeFoodDescriptionModal();
+            
+            // 调用上传函数（使用局部变量）
+            console.log('📤 开始调用 uploadFoodPhotos...');
+            try {
+                await uploadFoodPhotos(uploadDate, uploadFiles, foodDescription);
+                console.log('✅ uploadFoodPhotos 调用完成');
+            } catch (err) {
+                console.error('❌ uploadFoodPhotos 调用失败:', err);
+                alert('上传失败：' + (err.message || '未知错误'));
+            } finally {
+                // 重置上传标志
+                isUploadingFood = false;
+            }
+        }
+
+        // 上传食物照片并调用AI分析卡路里
+        async function uploadFoodPhotos(date, files, foodDescription = '') {
+            // 将files转换为数组（如果还不是数组）
+            const filesArray = Array.isArray(files) ? files : Array.from(files || []);
+            
+            console.log('🔵 uploadFoodPhotos 被调用，参数:', { date, files, filesType: typeof files, filesArrayLength: filesArray.length, foodDescription });
+            
+            if (!filesArray || filesArray.length === 0) {
+                console.error('❌ uploadFoodPhotos: files为空或长度为0');
+                return;
+            }
             
             // 检查该日期是否有体重记录（需要先有体重记录才能上传食物照片）
             const existingRecord = weightRecordsCache[date];
@@ -1726,20 +2029,18 @@
             formData.append('date', date);
             formData.append('type', 'food'); // 标识这是食物照片
             
-            // 获取食物描述文本
-            const descriptionElement = document.getElementById(`food-description-${date}`);
-            const foodDescription = descriptionElement ? descriptionElement.value.trim() : '';
-            if (foodDescription) {
-                formData.append('food_description', foodDescription);
+            // 添加食物描述文本（如果提供）
+            if (foodDescription && foodDescription.trim()) {
+                formData.append('food_description', foodDescription.trim());
             }
             
-            // 添加照片文件
-            Array.from(files).forEach(file => {
+            // 添加照片文件（使用filesArray，因为files可能是失效的FileList）
+            filesArray.forEach(file => {
                 formData.append('food_photos', file);
             });
             
             try {
-                console.log(`📤 开始上传食物照片，日期: ${date}, 文件数: ${files.length}`);
+                console.log(`📤 开始上传食物照片，日期: ${date}, 文件数: ${filesArray.length}`);
                 
                 // 显示加载提示
                 const caloriesElement = document.getElementById(`calories-${date}`);
@@ -1798,12 +2099,6 @@
                     if (caloriesElement && result.data.calories) {
                         caloriesElement.textContent = `${parseFloat(result.data.calories).toFixed(0)} 大卡`;
                         caloriesElement.style.color = '#ff6b6b';
-                    }
-                    
-                    // 清空描述输入框
-                    const descriptionElement = document.getElementById(`food-description-${date}`);
-                    if (descriptionElement) {
-                        descriptionElement.value = '';
                     }
                     
                     // 重新渲染列表以显示新上传的照片
@@ -2232,7 +2527,19 @@
         }
 
         // 页面加载时初始化
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+            
+            // 点击模态框外部关闭
+            const modal = document.getElementById('foodDescriptionModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target.id === 'foodDescriptionModal') {
+                        closeFoodDescriptionModal();
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

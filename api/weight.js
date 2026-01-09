@@ -696,29 +696,44 @@ ${prompt}
 
           if (foodInfo.error) {
             console.warn('⚠️ AI无法识别食物:', foodInfo.error);
-            caloriesAnalysis.push({
+            const analysisItem = {
               photo: path.basename(file.path),
               error: foodInfo.error,
               timestamp: new Date().toISOString()
-            });
+            };
+            // 如果有描述，添加到分析项中
+            if (food_description && food_description.trim()) {
+              analysisItem.description = food_description.trim();
+            }
+            caloriesAnalysis.push(analysisItem);
           } else if (foodInfo.totalCalories) {
             const photoCalories = parseFloat(foodInfo.totalCalories) || 0;
             totalCalories += photoCalories;
-            caloriesAnalysis.push({
+            const analysisItem = {
               photo: path.basename(file.path),
               foods: foodInfo.foods || [],
               calories: photoCalories,
               timestamp: new Date().toISOString()
-            });
+            };
+            // 如果有描述，添加到分析项中
+            if (food_description && food_description.trim()) {
+              analysisItem.description = food_description.trim();
+            }
+            caloriesAnalysis.push(analysisItem);
             console.log(`✅ 照片 ${path.basename(file.path)} 分析完成，卡路里: ${photoCalories}`);
           }
         } catch (err) {
           console.error('❌ 分析照片失败:', err);
-          caloriesAnalysis.push({
+          const analysisItem = {
             photo: path.basename(file.path),
             error: err.message || '分析失败',
             timestamp: new Date().toISOString()
-          });
+          };
+          // 如果有描述，添加到分析项中
+          if (food_description && food_description.trim()) {
+            analysisItem.description = food_description.trim();
+          }
+          caloriesAnalysis.push(analysisItem);
         }
       }
     }
