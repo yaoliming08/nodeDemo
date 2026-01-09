@@ -138,3 +138,4 @@ node sql/init_database.js
 4. 查看控制台输出的错误信息
 
 
+

@@ -7,3 +7,4 @@ ADD COLUMN `calories` DECIMAL(8,2) DEFAULT NULL COMMENT '当日总卡路里（�
 ADD COLUMN `calories_analysis` TEXT DEFAULT NULL COMMENT 'AI分析的卡路里详情（JSON格式）' AFTER `calories`;
 
 
+
