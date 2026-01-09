@@ -54,8 +54,10 @@
 
         .image-overlay-amount {
             position: absolute;
+            width: 220px;
+            text-align: right;
             top: 210px;
-            right: 32px;
+            right: -40px;
             transform: translateX(-50%);
             background: #57ab6f;
             color: #fff;
@@ -499,7 +501,7 @@
         <!-- 左侧参考图片 -->
         <div class="image-preview">
             <img src="/assets/qb.png" alt="参考图" onerror="console.error('图片加载失败，请确保图片在 public/assets/ 目录下');">
-            <div class="image-overlay-amount">¥2233548223</div>
+            <div class="image-overlay-amount" id="imageAmount">¥888,888.88</div>
         </div>
 
         <!-- 左侧钱包展示区域 -->
@@ -669,7 +671,9 @@
         // 更新预览
         function updatePreview(amount) {
             if (!isNaN(amount) && amount >= 0) {
-                document.getElementById('walletAmount').textContent = formatAmount(amount);
+                const formattedAmount = formatAmount(amount);
+                document.getElementById('walletAmount').textContent = formattedAmount;
+                document.getElementById('imageAmount').textContent = '¥' + formattedAmount;
             }
         }
 
