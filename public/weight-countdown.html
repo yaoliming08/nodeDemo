@@ -1605,7 +1605,7 @@
                             <div class="date-calories-row">
                                 <span class="date-calories-label-small">摄入:</span>
                                 <span class="date-calories-value-intake" id="calories-${dateInfo.date}">
-                                    ${calories ? `${parseFloat(calories).toFixed(0)} 大卡` : '未记录'}
+                                    ${calories !== null && calories !== undefined ? `${parseFloat(calories).toFixed(0)} 大卡` : '未记录'}
                                 </span>
                             </div>
                             <div class="date-calories-row">
@@ -1624,7 +1624,7 @@
                             ` : ''}
                             ` : `
                             <div class="date-calories-value" id="calories-${dateInfo.date}">
-                                ${record && record.calories ? `${parseFloat(record.calories).toFixed(0)} 大卡` : '未记录'}
+                                ${record && record.calories !== null && record.calories !== undefined ? `${parseFloat(record.calories).toFixed(0)} 大卡` : '未记录'}
                             </div>
                             `}
                             ${dateInfo.canEdit ? `
@@ -2076,6 +2076,7 @@
                 
                 const result = await response.json();
                 console.log('📥 上传响应数据:', result);
+                console.log('📊 响应中的calories:', result.data?.calories);
                 
                 if (result.success) {
                     // 更新缓存
@@ -2083,9 +2084,15 @@
                     const normalizedDate = typeof resultDate === 'string' ? resultDate.split('T')[0].split(' ')[0] : resultDate;
                     
                     if (weightRecordsCache[normalizedDate]) {
+                        // 保留原有数据，只更新上传相关的字段
                         weightRecordsCache[normalizedDate] = {
                             ...weightRecordsCache[normalizedDate],
-                            ...result.data,
+                            food_photos: result.data.food_photos || weightRecordsCache[normalizedDate].food_photos,
+                            calories: result.data.calories !== undefined ? result.data.calories : weightRecordsCache[normalizedDate].calories,
+                            calories_analysis: result.data.calories_analysis !== undefined ? result.data.calories_analysis : weightRecordsCache[normalizedDate].calories_analysis,
+                            daily_calories_burn: result.data.daily_calories_burn !== undefined ? result.data.daily_calories_burn : weightRecordsCache[normalizedDate].daily_calories_burn,
+                            bmr: result.data.bmr !== undefined ? result.data.bmr : weightRecordsCache[normalizedDate].bmr,
+                            calorie_deficit: result.data.calorie_deficit !== undefined ? result.data.calorie_deficit : weightRecordsCache[normalizedDate].calorie_deficit,
                             record_date: normalizedDate
                         };
                     } else {
@@ -2095,10 +2102,15 @@
                         };
                     }
                     
-                    // 更新卡路里显示
-                    if (caloriesElement && result.data.calories) {
+                    console.log('✅ 缓存已更新，calories:', weightRecordsCache[normalizedDate].calories);
+                    
+                    // 更新卡路里显示（即使calories为0也要显示）
+                    if (caloriesElement && result.data.calories !== null && result.data.calories !== undefined) {
                         caloriesElement.textContent = `${parseFloat(result.data.calories).toFixed(0)} 大卡`;
                         caloriesElement.style.color = '#ff6b6b';
+                    } else if (caloriesElement) {
+                        caloriesElement.textContent = '未记录';
+                        caloriesElement.style.color = '#999';
                     }
                     
                     // 重新渲染列表以显示新上传的照片
