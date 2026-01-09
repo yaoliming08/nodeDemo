@@ -83,6 +83,9 @@ app.use((req, res, next) => {
 // 允许访问静态文件（HTML页面）
 app.use(express.static('public'));
 
+// 允许访问assets目录
+app.use('/assets', express.static('assets'));
+
 // 允许访问上传的文件
 app.use('/uploads', express.static('uploads'));
 
