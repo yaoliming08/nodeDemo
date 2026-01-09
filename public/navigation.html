@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网址导航 - 学习资源</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .categories-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .category-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .category-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .category-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .category-icon {
+            font-size: 28px;
+        }
+
+        .links-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .link-item {
+            display: block;
+            padding: 18px 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            position: relative;
+        }
+
+        .link-item:hover {
+            background: #e9ecef;
+            border-left-color: #667eea;
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .link-item-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .link-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .link-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+
+        .link-url {
+            font-size: 13px;
+            color: #666;
+            margin-left: 44px;
+            word-break: break-all;
+        }
+
+        .external-icon {
+            position: absolute;
+            top: 18px;
+            right: 20px;
+            font-size: 14px;
+            color: #999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .link-item:hover .external-icon {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .categories-section {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .category-section {
+                padding: 20px;
+            }
+
+            .category-title {
+                font-size: 20px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-btn">← 返回首页</a>
+        
+        <div class="header">
+            <h1>
+                <span>🔗</span>
+                <span>网址导航</span>
+            </h1>
+            <p>精选学习资源，助力成长进步</p>
+        </div>
+
+        <div class="categories-section">
+            <!-- 视频学习网址 -->
+            <div class="category-section">
+                <div class="category-title">
+                    <span class="category-icon">🎬</span>
+                    <span>视频学习网址</span>
+                </div>
+                <div class="links-list">
+                    <a href="https://www.bilibili.com/" target="_blank" class="link-item">
+                        <div class="link-item-header">
+                            <div class="link-icon">📺</div>
+                            <div class="link-name">哔哩哔哩</div>
+                            <span class="external-icon">↗</span>
+                        </div>
+                        <div class="link-url">https://www.bilibili.com/</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 文档学习网址 -->
+            <div class="category-section">
+                <div class="category-title">
+                    <span class="category-icon">📚</span>
+                    <span>文档学习网址</span>
+                </div>
+                <div class="links-list">
+                    <a href="https://www.runoob.com/" target="_blank" class="link-item">
+                        <div class="link-item-header">
+                            <div class="link-icon">📖</div>
+                            <div class="link-name">菜鸟教程</div>
+                            <span class="external-icon">↗</span>
+                        </div>
+                        <div class="link-url">https://www.runoob.com/</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 平台官方网址 -->
+            <div class="category-section">
+                <div class="category-title">
+                    <span class="category-icon">🏢</span>
+                    <span>平台官方网址</span>
+                </div>
+                <div class="links-list">
+                    <a href="https://www.nextjs.cn/" target="_blank" class="link-item">
+                        <div class="link-item-header">
+                            <div class="link-icon">⚡</div>
+                            <div class="link-name">Next.js 中文文档</div>
+                            <span class="external-icon">↗</span>
+                        </div>
+                        <div class="link-url">https://www.nextjs.cn/</div>
+                    </a>
+                    <a href="https://github.com/" target="_blank" class="link-item">
+                        <div class="link-item-header">
+                            <div class="link-icon">🐙</div>
+                            <div class="link-name">GitHub</div>
+                            <span class="external-icon">↗</span>
+                        </div>
+                        <div class="link-url">https://github.com/</div>
+                    </a>
+                    <a href="https://gitcode.com/" target="_blank" class="link-item">
+                        <div class="link-item-header">
+                            <div class="link-icon">💻</div>
+                            <div class="link-name">GitCode</div>
+                            <span class="external-icon">↗</span>
+                        </div>
+                        <div class="link-url">https://gitcode.com/</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 论坛交流博客网址 -->
+            <div class="category-section">
+                <div class="category-title">
+                    <span class="category-icon">💬</span>
+                    <span>论坛交流博客网址</span>
+                </div>
+                <div class="links-list">
+                    <a href="https://www.csdn.net/" target="_blank" class="link-item">
+                        <div class="link-item-header">
+                            <div class="link-icon">📝</div>
+                            <div class="link-name">CSDN</div>
+                            <span class="external-icon">↗</span>
+                        </div>
+                        <div class="link-url">https://www.csdn.net/</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
