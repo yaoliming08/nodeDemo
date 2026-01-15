@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCM/WAV音频播放器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-3px);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px 20px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #e9ecef;
+        }
+
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 18px;
+            color: #667eea;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .pcm-settings {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .pcm-settings.active {
+            display: block;
+        }
+
+        .pcm-settings h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .setting-item label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .setting-item input,
+        .setting-item select {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .setting-item input:focus,
+        .setting-item select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .audio-list {
+            margin-top: 30px;
+        }
+
+        .audio-list-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .audio-item {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .audio-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .audio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .audio-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .audio-format {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #667eea;
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .audio-format.pcm {
+            background: #28a745;
+        }
+
+        .audio-format.wav {
+            background: #667eea;
+        }
+
+        .delete-btn {
+            padding: 6px 16px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-bottom: 10px;
+            border-radius: 10px;
+        }
+
+        .audio-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .back-btn {
+                position: relative;
+                top: 0;
+                left: 0;
+                display: inline-block;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" style="position: relative;">
+            <a href="index.html" class="back-btn">← 返回首页</a>
+            <h1>🎵 PCM/WAV音频播放器</h1>
+            <p>上传 PCM 或 WAV 音频文件，支持在线播放</p>
+        </div>
+
+        <div class="content">
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">点击或拖拽音频文件到此处上传</div>
+                    <div class="upload-hint">支持 PCM 和 WAV 格式</div>
+                </div>
+                <input type="file" id="fileInput" accept="audio/*,.pcm,.wav" multiple>
+
+                <div class="pcm-settings" id="pcmSettings">
+                    <h3>PCM 文件参数设置</h3>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label>采样率 (Hz)</label>
+                            <input type="number" id="sampleRate" value="44100" min="8000" max="192000" step="1000">
+                        </div>
+                        <div class="setting-item">
+                            <label>声道数</label>
+                            <select id="channels">
+                                <option value="1">单声道</option>
+                                <option value="2" selected>立体声</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label>位深度 (bit)</label>
+                            <select id="bitDepth">
+                                <option value="8">8 bit</option>
+                                <option value="16" selected>16 bit</option>
+                                <option value="24">24 bit</option>
+                                <option value="32">32 bit</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="audio-list" id="audioList">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-state-icon">🎵</div>
+                    <div class="empty-state-text">还没有上传音频文件</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const audioList = document.getElementById('audioList');
+        const emptyState = document.getElementById('emptyState');
+        const pcmSettings = document.getElementById('pcmSettings');
+        
+        // 使用内存存储音频文件（避免 localStorage 大小限制）
+        let audioFiles = [];
+
+        // 上传区域点击事件
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // 文件选择事件
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(Array.from(e.target.files));
+        });
+
+        // 拖拽事件
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files).filter(file => 
+                file.type.startsWith('audio/') || 
+                file.name.toLowerCase().endsWith('.pcm') || 
+                file.name.toLowerCase().endsWith('.wav')
+            );
+            if (files.length > 0) {
+                handleFiles(files);
+            }
+        });
+
+        // 处理文件
+        function handleFiles(files) {
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const fileData = {
+                        id: Date.now() + Math.random(),
+                        name: file.name,
+                        size: file.size,
+                        type: file.type || getFileType(file.name),
+                        data: e.target.result,
+                        format: file.name.toLowerCase().endsWith('.pcm') ? 'pcm' : 'wav',
+                        timestamp: Date.now()
+                    };
+                    
+                    audioFiles.push(fileData);
+                    saveAudioFiles();
+                    renderAudioList();
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // 获取文件类型
+        function getFileType(filename) {
+            const ext = filename.toLowerCase().split('.').pop();
+            if (ext === 'pcm') return 'audio/pcm';
+            if (ext === 'wav') return 'audio/wav';
+            return 'audio/unknown';
+        }
+
+        // 保存音频文件到本地存储（仅保存元数据）
+        function saveAudioFiles() {
+            // 只保存基本信息，不保存完整的音频数据（避免超出存储限制）
+            const filesToSave = audioFiles.map(file => ({
+                id: file.id,
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                format: file.format,
+                timestamp: file.timestamp
+            }));
+            localStorage.setItem('audioFilesMeta', JSON.stringify(filesToSave));
+        }
+
+        // 渲染音频列表
+        function renderAudioList() {
+            if (audioFiles.length === 0) {
+                emptyState.style.display = 'block';
+                audioList.innerHTML = '';
+                audioList.appendChild(emptyState);
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            audioList.innerHTML = '<div class="audio-list-title"><span>📻</span><span>已上传的音频文件</span></div>';
+
+            audioFiles.forEach((file, index) => {
+                const audioItem = document.createElement('div');
+                audioItem.className = 'audio-item';
+                audioItem.innerHTML = `
+                    <div class="audio-header">
+                        <div class="audio-name">
+                            <span>${file.name}</span>
+                            <span class="audio-format ${file.format}">${file.format.toUpperCase()}</span>
+                        </div>
+                        <button class="delete-btn" onclick="deleteAudio(${index})">删除</button>
+                    </div>
+                    <audio class="audio-player" controls id="audio-${file.id}"></audio>
+                    <div class="audio-info">
+                        <span>文件大小: ${formatFileSize(file.size)}</span>
+                        <span>上传时间: ${new Date(file.timestamp).toLocaleString()}</span>
+                    </div>
+                `;
+                audioList.appendChild(audioItem);
+
+                // 加载音频
+                loadAudio(file, index);
+            });
+        }
+
+        // 加载音频
+        function loadAudio(file, index) {
+            const audioElement = document.getElementById(`audio-${file.id}`);
+            if (!audioElement) return;
+
+            if (file.format === 'pcm') {
+                // 处理 PCM 文件
+                const sampleRate = parseInt(document.getElementById('sampleRate').value) || 44100;
+                const channels = parseInt(document.getElementById('channels').value) || 2;
+                const bitDepth = parseInt(document.getElementById('bitDepth').value) || 16;
+                
+                // 将 PCM 数据转换为 WAV
+                const wavBlob = pcmToWav(file.data, sampleRate, channels, bitDepth);
+                const url = URL.createObjectURL(wavBlob);
+                audioElement.src = url;
+            } else {
+                // 处理 WAV 文件
+                const blob = new Blob([file.data], { type: 'audio/wav' });
+                const url = URL.createObjectURL(blob);
+                audioElement.src = url;
+            }
+
+            // 清理 URL
+            audioElement.addEventListener('ended', () => {
+                // 不立即清理，让用户可以重播
+            });
+        }
+
+        // PCM 转 WAV
+        function pcmToWav(pcmData, sampleRate, channels, bitDepth) {
+            const length = pcmData.byteLength;
+            const bytesPerSample = bitDepth / 8;
+            const blockAlign = channels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = length;
+            const fileSize = 36 + dataSize;
+
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            // WAV 文件头
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, fileSize, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true); // fmt chunk size
+            view.setUint16(20, 1, true); // audio format (1 = PCM)
+            view.setUint16(22, channels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitDepth, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            // 复制 PCM 数据
+            const pcmView = new Uint8Array(pcmData);
+            const wavView = new Uint8Array(buffer);
+            wavView.set(pcmView, 44);
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        // 删除音频
+        function deleteAudio(index) {
+            if (confirm('确定要删除这个音频文件吗？')) {
+                const file = audioFiles[index];
+                // 清理音频 URL
+                const audioElement = document.getElementById(`audio-${file.id}`);
+                if (audioElement && audioElement.src) {
+                    URL.revokeObjectURL(audioElement.src);
+                }
+                
+                audioFiles.splice(index, 1);
+                saveAudioFiles();
+                renderAudioList();
+            }
+        }
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // 监听 PCM 设置变化，更新已加载的 PCM 文件
+        ['sampleRate', 'channels', 'bitDepth'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('change', () => {
+                    audioFiles.forEach((file, index) => {
+                        if (file.format === 'pcm') {
+                            loadAudio(file, index);
+                        }
+                    });
+                });
+            }
+        });
+
+        // 初始化
+        renderAudioList();
+    </script>
+</body>
+</html>
+

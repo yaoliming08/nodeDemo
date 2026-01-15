@@ -7,3 +7,5 @@ ADD COLUMN IF NOT EXISTS `height` DECIMAL(5,2) DEFAULT NULL COMMENT '身高（�
 
 
 
+
+
